@@ -1,0 +1,14 @@
+{
+  "pins" : [
+    {
+      "identity" : "idd-log4-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kdeda/idd-log4-swift.git",
+      "state" : {
+        "revision" : "de55f45d40e0db14b4a8381fbb20ed0e1adf2a87",
+        "version" : "1.2.3"
+      }
+    }
+  ],
+  "version" : 2
+}
