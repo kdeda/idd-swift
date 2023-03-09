@@ -11,9 +11,9 @@ import Foundation
 import Log4swift
 
 extension String {
-    static let ZERO_CHAR = Character(UnicodeScalar(48)) // 0
-    static let ONE_CHAR = Character(UnicodeScalar(49)) // 1
-    static let logger: Logger = {
+    static public let ZERO_CHAR = Character(UnicodeScalar(48)) // 0
+    static public let ONE_CHAR = Character(UnicodeScalar(49)) // 1
+    static public let logger: Logger = {
         return Log4swift.getLogger("String")
     }()
 
