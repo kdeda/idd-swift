@@ -16,19 +16,22 @@ let package = Package(
             targets: ["IDDSwift"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/kdeda/idd-log4-swift.git", from: "1.2.3")
+        .package(url: "https://github.com/kdeda/idd-log4-swift.git", from: "1.2.3"),
+        .package(url: "https://github.com/kdeda/idd-zstd-swift.git", from: "1.2.1")
     ],
     targets: [
         .target(
             name: "IDDSwift",
             dependencies: [
-                .product(name: "Log4swift", package: "idd-log4-swift")
+                .product(name: "Log4swift", package: "idd-log4-swift"),
+                .product(name: "ZSTDSwift", package: "idd-zstd-swift")
             ]
         ),
         .testTarget(
             name: "IDDSwiftTests",
             dependencies: [
-                .product(name: "Log4swift", package: "idd-log4-swift")
+                .product(name: "Log4swift", package: "idd-log4-swift"),
+                .product(name: "ZSTDSwift", package: "idd-zstd-swift")
             ]
         )
     ]

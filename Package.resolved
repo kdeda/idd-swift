@@ -8,6 +8,15 @@
         "revision" : "de55f45d40e0db14b4a8381fbb20ed0e1adf2a87",
         "version" : "1.2.3"
       }
+    },
+    {
+      "identity" : "idd-zstd-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kdeda/idd-zstd-swift.git",
+      "state" : {
+        "revision" : "3e121dd7510af722777fe87f10d1463903a1b988",
+        "version" : "1.2.1"
+      }
     }
   ],
   "version" : 2
