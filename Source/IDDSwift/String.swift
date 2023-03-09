@@ -10,10 +10,10 @@
 import Foundation
 import Log4swift
 
-extension String {
-    static public let ZERO_CHAR = Character(UnicodeScalar(48)) // 0
-    static public let ONE_CHAR = Character(UnicodeScalar(49)) // 1
-    static public let logger: Logger = {
+public extension String {
+    static let ZERO_CHAR = Character(UnicodeScalar(48)) // 0
+    static let ONE_CHAR = Character(UnicodeScalar(49)) // 1
+    static let logger: Logger = {
         return Log4swift.getLogger("String")
     }()
 
@@ -29,25 +29,25 @@ extension String {
         return NSRange(location: 0, length: 0)
     }
     
-    public func nsRange(of substring: String) -> NSRange {
+    func nsRange(of substring: String) -> NSRange {
         return _nsRange(from: self.range(of: substring))
     }
 
-    public func lowerCaseFirstLetter() -> String {
+    func lowerCaseFirstLetter() -> String {
         let first = String(self.prefix(1)).lowercased()
         let other = String(self.dropFirst())
         
         return first + other
     }
 
-    public func capitalizingFirstLetter() -> String {
+    func capitalizingFirstLetter() -> String {
         let first = String(self.prefix(1)).capitalized
         let other = String(self.dropFirst())
         
         return first + other
     }
     
-    mutating public func capitalizeFirstLetter() {
+    mutating func capitalizeFirstLetter() {
         self = self.capitalizingFirstLetter()
     }
 
@@ -76,7 +76,7 @@ extension String {
     // - 2 : "oodcut"
     //
     
-    public func splitBySpaceOrCamelCaseTwoWide() -> [String] {
+    func splitBySpaceOrCamelCaseTwoWide() -> [String] {
         var words = self.components(separatedBy: .uppercaseLetters)
         var camelCaseWords = [String]()
         
@@ -142,15 +142,15 @@ extension String {
     // TODO: kdeda
     // March 2023
     // Localization now should be done using enums ...
-    public var localized: String {
+    var localized: String {
         return self // Localizer.shared.localize(self)
     }
 
-    public var asciiArray: [UInt32] {
+    var asciiArray: [UInt32] {
         return unicodeScalars.filter { $0.isASCII }.map { $0.value }
     }
     
-    public func leftPadding(to length: Int, withPad character: Character) -> String {
+    func leftPadding(to length: Int, withPad character: Character) -> String {
         let stringLength = self.count
         
         if stringLength < length {
@@ -161,11 +161,11 @@ extension String {
     
     // the character will be space
     //
-    public func leftPadding(to length: Int) -> String {
+    func leftPadding(to length: Int) -> String {
         return self.leftPadding(to: length, withPad: Character(" "))
     }
 
-    public var sqliteEscaped: String {
+    var sqliteEscaped: String {
         return self.replacingOccurrences(of: "'", with: "''")
     }
     
@@ -173,7 +173,7 @@ extension String {
     // partialString: 'Space needed for this backup:'
     // return: ' 732.21 GB (89381501 blocks of size 8192)'
     //
-    public func substring(after partialString: String) -> String? {
+    func substring(after partialString: String) -> String? {
         if let range = self.range(of: partialString) {
             return String(self[range.upperBound..<self.endIndex])
         }
@@ -184,7 +184,7 @@ extension String {
     // partialString: '('
     // return: 'Space needed for this backup: 732.21 GB '
     //
-    public func substring(before partialString: String) -> String? {
+    func substring(before partialString: String) -> String? {
         if let range = self.range(of: partialString) {
             return String(self[self.startIndex..<range.lowerBound])
         }
@@ -199,7 +199,7 @@ extension String {
     //
     // will remove new lines or other weird control chars from string
     //
-    public func pathRelative(from parentPath: String) -> String {
+    func pathRelative(from parentPath: String) -> String {
         let filePath = self.trimmingCharacters(in: CharacterSet.controlCharacters)
         
         if parentPath.count > 0 && parentPath != "/" {
@@ -218,7 +218,7 @@ extension String {
      * ie WHATSIZE­-3JWQ­-19FL­-GDTV­-9WXR­-7W99
      * has invisible dashes, if you paste it on terminal you should see them
      */
-    public var registrationKey: String {
+    var registrationKey: String {
         var allowed = CharacterSet()
         
         allowed.formUnion(.alphanumerics)
@@ -226,7 +226,7 @@ extension String {
         return self.trimmingCharacters(in: allowed.inverted)
     }
     
-    public var cleanedEmailAddress: String {
+    var cleanedEmailAddress: String {
         if !self.isEmpty {
             let tokens = self.components(separatedBy: " ").unique()
 
@@ -238,7 +238,7 @@ extension String {
         return self
     }
 
-    public var isValidEmailAddress: Bool {
+    var isValidEmailAddress: Bool {
         return EmailValidator.isValid(emailAddress: self)
     }
 
@@ -246,34 +246,17 @@ extension String {
      returns a unique fingerprint
      ie: 2E79D73C-EAB5-44E0-9DEC-75602872402E
      */
-    public var md5: String {
+    var md5: String {
         return (data(using: .utf8) ?? Data()).md5
     }
     
-    public var isNotEmpty: Bool {
+    var isNotEmpty: Bool {
         !isEmpty
     }
 }
 
-extension Character {
+public extension Character {
     var asciiValue: UInt32? {
         return String(self).unicodeScalars.filter{$0.isASCII}.first?.value
-    }
-}
-
-/**
- valid emails are now _@foo.com
- */
-struct EmailValidator {
-    private static let __firstpart = "[A-Z0-9a-z_]([A-Z0-9a-z._%+-]{0,30}[A-Z0-9a-z])?"
-    private static let __serverpart = "([A-Z0-9a-z]([A-Z0-9a-z-]{0,30}[A-Z0-9a-z])?\\.){1,5}"
-    private static let __emailRegex = __firstpart + "@" + __serverpart + "[A-Za-z]{2,8}"
-    private static let __emailPredicate = NSPredicate(format: "SELF MATCHES %@", __emailRegex)
-
-    public static func isValid(emailAddress: String) -> Bool {
-        if emailAddress.isEmpty {
-            return false
-        }
-        return EmailValidator.__emailPredicate.evaluate(with: emailAddress)
     }
 }

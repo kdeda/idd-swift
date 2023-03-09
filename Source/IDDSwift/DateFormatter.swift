@@ -1,5 +1,5 @@
 //
-//  DateFormatter+Extensions.swift
+//  DateFormatter.swift
 //  IDDSwift
 //
 //  Created by Klajd Deda on 11/4/17.
@@ -8,8 +8,8 @@
 
 import Foundation
 
-extension DateFormatter {
-    convenience public init(withFormatString formatString: String, andPOSIXLocale posixLocale: Bool) {
+public extension DateFormatter {
+    convenience init(withFormatString formatString: String, andPOSIXLocale posixLocale: Bool) {
         self.init()
         self.locale = Locale.init(identifier: "en_US_POSIX")
         self.dateFormat = formatString

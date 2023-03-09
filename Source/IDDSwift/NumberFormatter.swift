@@ -8,8 +8,8 @@
 
 import Foundation
 
-extension NumberFormatter {
-    public static let formaterWith3digits: NumberFormatter = {
+public extension NumberFormatter {
+    static let formaterWith3digits: NumberFormatter = {
         let rv = NumberFormatter()
         
         rv.locale = Locale.init(identifier: "en_US_POSIX")
@@ -18,7 +18,7 @@ extension NumberFormatter {
         return rv
     }()
 
-    public static let formaterWith2digits: NumberFormatter = {
+    static let formaterWith2digits: NumberFormatter = {
         let rv = NumberFormatter()
 
         rv.locale = Locale.init(identifier: "en_US_POSIX")
@@ -35,12 +35,12 @@ extension NumberFormatter {
  let number2 = 120.123456
  let cool2 = number2.with2Digits -> 120.12
  */
-extension Double {
-    public var with3Digits: String {
+public extension Double {
+    var with3Digits: String {
         return NumberFormatter.formaterWith3digits.string(from: self as NSNumber) ?? "0.196"
     }
 
-    public var with2Digits: String {
+    var with2Digits: String {
         return NumberFormatter.formaterWith2digits.string(from: self as NSNumber) ?? "0.19"
     }
 }

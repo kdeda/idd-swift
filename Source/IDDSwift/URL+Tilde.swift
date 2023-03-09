@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension URL {
+public extension URL {
     /// Expanding tilde in URL
     ///
     /// ```
@@ -24,7 +24,7 @@ extension URL {
     /// - Precondition: The URL should be a file url or a string url that starts with `~/` or `/~/`.
     /// If the URL is empty or starts with the FileManager.default.homeDirectoryForCurrentUser.path ew return self.
     /// - Returns: The `URL` if we'r able to expand the ~ into a full URL, or `nil` if we'r unable do so
-    public var expandingTilde: URL? {
+    var expandingTilde: URL? {
         let homePath = FileManager.default.homeDirectoryForCurrentUser.path
         var components = self.pathComponents
 

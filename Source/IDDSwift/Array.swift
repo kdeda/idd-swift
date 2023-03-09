@@ -1,5 +1,5 @@
 //
-//  Array+Extensions.swift
+//  Array.swift
 //  IDDSwift
 //
 //  Created by Klajd Deda on 12/26/19.
@@ -8,14 +8,14 @@
 
 import Foundation
 
-extension Array where Element: Equatable {
-    public func unique() -> Array {
+public extension Array where Element: Equatable {
+    func unique() -> Array {
         return reduce(Array()) { uniqueValues, element in
             uniqueValues.contains(element) ? uniqueValues : uniqueValues + [element]
         }
     }
 
-    public func split(batchSize: Int) -> [[Element]] {
+    func split(batchSize: Int) -> [[Element]] {
         var rv: [[Element]] = []
 
         for idx in stride(from: 0, to: count, by: batchSize) {
@@ -29,7 +29,7 @@ extension Array where Element: Equatable {
     // safe
     // https://www.hackingwithswift.com/example-code/language/how-to-make-array-access-safer-using-a-custom-subscript
     //
-    public subscript(safeIndex index: Int) -> Element? {
+    subscript(safeIndex index: Int) -> Element? {
         guard index >= 0, index < endIndex else {
             return .none
         }

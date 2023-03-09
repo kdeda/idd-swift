@@ -1,5 +1,5 @@
 //
-//  Data+Extensions.swift
+//  Data.swift
 //  IDDSwift
 //
 //  Created by Klajd Deda on 9/17/17.
@@ -11,13 +11,8 @@ import Log4swift
 import CommonCrypto
 import CryptoKit
 
-// MARK: - Data -
-
-extension Data {
-    /**
-     Optionals are not fun
-     */
-    public init(withURL url: URL) {
+public extension Data {
+    init(withURL url: URL) {
         do {
             try self.init(contentsOf: url)
         } catch {
@@ -26,7 +21,7 @@ extension Data {
         }
     }
     
-    mutating public func appendString(_ string: String) {
+    mutating func appendString(_ string: String) {
         guard let data = string.data(using: String.Encoding.utf8, allowLossyConversion: false)
             else { return }
         append(data)
@@ -51,7 +46,7 @@ extension Data {
      returns a unique fingerprint
      ie: 2E79D73C-EAB5-44E0-9DEC-75602872402E
      */
-    public var md5: String {
+    var md5: String {
         if #available(macOS 10.15, *) {
             let digest = Insecure.MD5.hash(data: self)
             var tokens = digest.map { String(format: "%02hhx", $0) }

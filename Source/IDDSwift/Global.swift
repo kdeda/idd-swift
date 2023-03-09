@@ -9,16 +9,15 @@
 import Foundation
 
 public struct Global {
-    static public var isAppStoreBuild: Bool {
-        get {
-            var rv = false
-            
-            #if APPLE_STORE_BUILD
-                rv = true
-            #else
-            #endif // APPLE_STORE_BUILD
-            
-            return rv
-        }
+    /**
+     Might come handy if we want to put softwre up on AppStore
+     */
+    public static var isAppStoreBuild: Bool {
+        var rv = false
+#if APPLE_STORE_BUILD
+        rv = true
+#else
+#endif // APPLE_STORE_BUILD
+        return rv
     }
 }

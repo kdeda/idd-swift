@@ -1,5 +1,5 @@
 //
-//  Bundle+Extensions.swift
+//  Bundle.swift
 //  IDDSwift
 //
 //  Created by Klajd Deda on 7/26/18.
@@ -10,7 +10,6 @@ import Foundation
 import Log4swift
 
 public extension Bundle {
-    
     static func with(appName appName_dot_app: String) -> Bundle? {
         let urls = [
             URL.home.appendingPathComponent("Development/build/Release/"),

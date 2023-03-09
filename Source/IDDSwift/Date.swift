@@ -1,5 +1,5 @@
 //
-//  Date+Extensions.swift
+//  Date.swift
 //  IDDSwift
 //
 //  Created by Klajd Deda on 12/5/17.
@@ -8,55 +8,54 @@
 
 import Foundation
 
-extension Date {
-    public static let defaultFormatter = DateFormatter.init(withFormatString: "yyyy-MM-dd HH:mm:ss.SSS Z", andPOSIXLocale: true)
+public extension Date {
+    static let defaultFormatter = DateFormatter.init(withFormatString: "yyyy-MM-dd HH:mm:ss.SSS Z", andPOSIXLocale: true)
 
-    public static func elapsedTime(for closure: (()-> Swift.Void)) -> String {
+    static func elapsedTime(for closure: (()-> Swift.Void)) -> String {
         let startDate = Date.init()
         closure()
         return startDate.elapsedTime
     }
 
-    public static func elapsedTime(from elapsedTimeInMilliseconds: Double) -> String {
+    static func elapsedTime(from elapsedTimeInMilliseconds: Double) -> String {
         elapsedTimeInMilliseconds.with3Digits
     }
     
     // positive number if some time has elapsed since now
     //
-    public var elapsedTimeInMilliseconds: Double {
+    var elapsedTimeInMilliseconds: Double {
         -self.timeIntervalSinceNow * 1000.0
     }
     
     // positive number if some time has elapsed since now
     //
-    public var elapsedTimeInSeconds: Double {
+    var elapsedTimeInSeconds: Double {
         (-self.timeIntervalSinceNow)
     }
 
-    public var elapsedTime: String {
+    var elapsedTime: String {
         elapsedTimeInMilliseconds.with3Digits
     }
 
-    public func string(withFormat formatString: String) -> String {
+    func string(withFormat formatString: String) -> String {
         let dateFormatter = DateFormatter.init(withFormatString: formatString, andPOSIXLocale: true)
         return dateFormatter.string(from: self)
     }
 
-    public var stringWithDefaultFormat: String {
+    var stringWithDefaultFormat: String {
         Date.defaultFormatter.string(from: self)
     }
     
     // if numberOfDays is positive return date is us but numberOfDays in the future
     // if numberOfDays is negative return date is us but numberOfDays in the past
     //
-    public func date(shiftedByDays numberOfDays: Int) -> Date {
+    func date(shiftedByDays numberOfDays: Int) -> Date {
         Date(timeInterval: Double(numberOfDays * 24 * 3600), since: self)
     }
 }
 
-extension String {
-    
-    public var dateWithDefaultFormat: Date? {
+public extension String {
+    var dateWithDefaultFormat: Date? {
         Date.defaultFormatter.date(from: self)
     }
 }

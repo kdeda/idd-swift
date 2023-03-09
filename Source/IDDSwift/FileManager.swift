@@ -12,7 +12,7 @@ import Log4swift
 import Cocoa
 #endif
 
-extension FileManager {
+public extension FileManager {
     private static var mountedVolumes = [String]()
     private static var mountedVolumesLastFetchDate = Date.distantPast
     private static var registerForWorkSpaceNotifications = false
@@ -24,7 +24,7 @@ extension FileManager {
     /**
      it will return false if the file exists and we could not remove it
      */
-    public func removeItemIfExist(at pathURL: URL) -> Bool {
+    func removeItemIfExist(at pathURL: URL) -> Bool {
         do {
             if pathURL.fileExist {
                 try FileManager.default.removeItem(at: pathURL)
@@ -37,13 +37,13 @@ extension FileManager {
         return true
     }
     
-    public var hasFullDiskAccess: Bool {
+    var hasFullDiskAccess: Bool {
         return hasFullDiskAccess(forHomeDirectory: URL.home)
     }
 
     // true if any of these files exist and are readable by the current app
     //
-    public func hasFullDiskAccess(forHomeDirectory homeDirectory: URL) -> Bool {
+    func hasFullDiskAccess(forHomeDirectory homeDirectory: URL) -> Bool {
         let userFiles = [
             "/Library/Application Support/AddressBook",
             "/Library/Application Support/CallHistoryDB",
@@ -89,7 +89,7 @@ extension FileManager {
     }
 
     @discardableResult
-    public func createDirectoryIfMissing(at pathURL: URL) -> Bool {
+    func createDirectoryIfMissing(at pathURL: URL) -> Bool {
         guard !pathURL.fileExist
         else { return true }
         
@@ -123,7 +123,7 @@ extension FileManager {
         Self.mountedVolumesLastFetchDate = Date.distantPast
     }
     
-    @objc  private func didUnmountNotification(_ notification: NSNotification) {
+    @objc private func didUnmountNotification(_ notification: NSNotification) {
         objc_sync_enter(self)
         defer {
             objc_sync_exit(self)
@@ -138,7 +138,7 @@ extension FileManager {
      * /net
      * /Volumes/...
      */
-    public func mountedVolumes(_ refetch: Bool) -> [String] {
+    func mountedVolumes(_ refetch: Bool) -> [String] {
         objc_sync_enter(self)
         defer {
             objc_sync_exit(self)
@@ -181,7 +181,7 @@ extension FileManager {
         return Self.mountedVolumes
     }
     
-    public func isMountedVolume(_ basePath: String) -> Bool {
+    func isMountedVolume(_ basePath: String) -> Bool {
         objc_sync_enter(self)
         defer {
             objc_sync_exit(self)

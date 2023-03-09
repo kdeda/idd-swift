@@ -8,8 +8,8 @@
 
 import Foundation
 
-extension Sequence {
-    public func asyncMap<T>(
+public extension Sequence {
+    func asyncMap<T>(
         _ transform: (Element) async throws -> T
     ) async rethrows -> [T] {
         var values = [T]()
@@ -21,7 +21,7 @@ extension Sequence {
         return values
     }
     
-    public func asyncForEach(
+    func asyncForEach(
         _ operation: (Element) async throws -> Void
     ) async rethrows {
         for element in self {
