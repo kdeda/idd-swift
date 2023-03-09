@@ -1,5 +1,5 @@
 //
-//  Array.swift
+//  Array+Extensions.swift
 //  IDDSwift
 //
 //  Created by Klajd Deda on 12/26/19.

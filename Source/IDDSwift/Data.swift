@@ -1,5 +1,5 @@
 //
-//  Data.swift
+//  Data+Extensions.swift
 //  IDDSwift
 //
 //  Created by Klajd Deda on 9/17/17.

@@ -1,5 +1,5 @@
 //
-//  NSRunningApplication.swift
+//  Bundle+Extensions.swift
 //  IDDSwift
 //
 //  Created by Klajd Deda on 7/26/18.

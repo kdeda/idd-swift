@@ -1,5 +1,5 @@
 //
-//  Date.swift
+//  Date+Extensions.swift
 //  IDDSwift
 //
 //  Created by Klajd Deda on 12/5/17.
