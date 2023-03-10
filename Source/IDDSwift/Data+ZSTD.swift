@@ -8,13 +8,13 @@
 
 import Foundation
 import Log4swift
-import SWCompression
 import ZSTDSwift
 
 public extension Data {
     
     // https://github.com/aperedera/SwiftZSTD
     // the new supreme leader, twice if not thirce faster than zlibCompressed()
+    // these guys are 10 times slower https://github.com/tsolomko/SWCompression
     //
     var zlibCompressed: Data {
         let startDate = Date.init()
@@ -61,41 +61,4 @@ public extension Data {
         Log4swift[Self.self].info("in: '\(self.count.decimalFormatted)' out: '\(rv.count.decimalFormatted) bytes' in: '\(startDate.elapsedTime) ms'")
         return rv
     }
-
-    // Using pure swift, from: https://github.com/tsolomko/SWCompression
-    //
-    var zlibCompressedV2: Data {
-        let startDate = Date.init()
-        var rv = Data()
-
-        do {
-            rv = try GzipArchive.archive(data: self)
-        } catch {
-            Log4swift[Self.self].error("Unknown error.")
-        }
-
-        //let rv = self.compress(withAlgorithm: .lzfse) ?? Data()
-        //let rv = (self as NSData).zlibCompressed() as Data
-        Log4swift[Self.self].info("in: '\(self.count.decimalFormatted)' out: '\(rv.count.decimalFormatted) bytes' in: '\(startDate.elapsedTime) ms'")
-        return rv
-    }
-
-    // Using pure swift, from: https://github.com/tsolomko/SWCompression
-    //
-    var zlibUncompressedV2: Data {
-        let startDate = Date.init()
-        var rv = Data()
-
-        do {
-            rv = try GzipArchive.unarchive(archive: self)
-        } catch {
-            Log4swift[Self.self].error("Unknown error.")
-        }
-
-        //let rv = self.compress(withAlgorithm: .lzfse) ?? Data()
-        //let rv = (self as NSData).zlibCompressed() as Data
-        Log4swift[Self.self].info("in: '\(self.count.decimalFormatted)' out: '\(rv.count.decimalFormatted) bytes' in: '\(startDate.elapsedTime) ms'")
-        return rv
-    }
-
 }
