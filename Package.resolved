@@ -1,6 +1,15 @@
 {
   "pins" : [
     {
+      "identity" : "bitbytedata",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tsolomko/BitByteData",
+      "state" : {
+        "revision" : "b4b41619522aacd7aae7b02fa8360833e796a03d",
+        "version" : "2.0.2"
+      }
+    },
+    {
       "identity" : "idd-log4-swift-v2",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/kdeda/idd-log4-swift-v2.git",
@@ -16,6 +25,15 @@
       "state" : {
         "revision" : "5fc6a874f08b5c77583cec3a5390df55adfc8ab5",
         "version" : "1.3.1"
+      }
+    },
+    {
+      "identity" : "swcompression",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tsolomko/SWCompression.git",
+      "state" : {
+        "revision" : "cd39ca0a3b269173bab06f68b182b72fa690765c",
+        "version" : "4.8.5"
       }
     },
     {
