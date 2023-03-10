@@ -50,8 +50,8 @@ public struct UserDefaultsValue<Value>: Equatable where Value: Equatable, Value:
         get {
             // Log4swift[Self.self].info("loading: '\(self.key)'")
             let value: Value? = {
-                guard let storedValue = storage.value(forKey: key.jsonKey) as? String
-                else { return storage.value(forKey: key) as? Value }
+                guard let storedValue = storage.object(forKey: key.jsonKey) as? String
+                else { return storage.object(forKey: key) as? Value }
                 let encoder = JSONDecoder()
                 
                 encoder.dateDecodingStrategy = .iso8601
@@ -78,7 +78,7 @@ public struct UserDefaultsValue<Value>: Equatable where Value: Equatable, Value:
                 let data = try encoder.encode(newValue)
                 let storedValue = String(data: data, encoding: .utf8) ?? ""
                 
-                storage.setValue(storedValue, forKey: key.jsonKey)
+                storage.set(storedValue, forKey: key.jsonKey)
                 storage.removeObject(forKey: key)
                 // Log4swift[Self.self].info("stored \(self.key): '\(storedValue)'")
             } catch {

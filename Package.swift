@@ -17,21 +17,24 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/kdeda/idd-log4-swift-v2.git", from: "2.0.2"),
-        .package(url: "https://github.com/kdeda/idd-zstd-swift.git", from: "1.3.2")
+        .package(url: "https://github.com/kdeda/idd-zstd-swift.git", from: "1.3.2"),
+        .package(url: "https://github.com/apple/swift-crypto.git", from: "2.2.4")
     ],
     targets: [
         .target(
             name: "IDDSwift",
             dependencies: [
                 .product(name: "Log4swift", package: "idd-log4-swift-v2"),
-                .product(name: "ZSTDSwift", package: "idd-zstd-swift")
+                .product(name: "ZSTDSwift", package: "idd-zstd-swift"),
+                .product(name: "Crypto", package: "swift-crypto")
             ]
         ),
         .testTarget(
             name: "IDDSwiftTests",
             dependencies: [
                 .product(name: "Log4swift", package: "idd-log4-swift-v2"),
-                .product(name: "ZSTDSwift", package: "idd-zstd-swift")
+                .product(name: "ZSTDSwift", package: "idd-zstd-swift"),
+                .product(name: "Crypto", package: "swift-crypto")
             ]
         )
     ]

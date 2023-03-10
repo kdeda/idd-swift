@@ -8,8 +8,7 @@
 
 import Foundation
 import Log4swift
-import CommonCrypto
-import CryptoKit
+import Crypto
 
 public extension Data {
     init(withURL url: URL) {
@@ -27,43 +26,24 @@ public extension Data {
         append(data)
     }
     
-    private var md5_legacy: String {
-        let length = Int(CC_MD5_DIGEST_LENGTH)
-        var digest = [UInt8](repeating: 0, count: length)
-
-        _ = digest.withUnsafeMutableBytes { (digestBytes) -> Bool in
-            self.withUnsafeBytes { (messageBytes) -> Bool in
-                _ = CC_MD5(messageBytes.baseAddress, CC_LONG(self.count), digestBytes.bindMemory(to: UInt8.self).baseAddress)
-                return true
-            }
-        }
-        return (0..<length).reduce("") {
-            $0 + String(format: "%02x", digest[$1])
-        }
-    }
-
     /**
      returns a unique fingerprint
      ie: 2E79D73C-EAB5-44E0-9DEC-75602872402E
      */
     var md5: String {
-        if #available(macOS 10.15, *) {
-            let digest = Insecure.MD5.hash(data: self)
-            var tokens = digest.map { String(format: "%02hhx", $0) }
-            
-            if tokens.count == 16 {
-                tokens.insert("-", at: 4)
-                tokens.insert("-", at: 7)
-                tokens.insert("-", at: 10)
-                tokens.insert("-", at: 13)
-                
-                if let uuid = UUID(uuidString: tokens.joined(separator: "").uppercased()) {
-                    return uuid.uuidString
-                }
+        let digest = Insecure.MD5.hash(data: self)
+        var tokens = digest.map { String(format: "%02hhx", $0) }
+
+        if tokens.count == 16 {
+            tokens.insert("-", at: 4)
+            tokens.insert("-", at: 7)
+            tokens.insert("-", at: 10)
+            tokens.insert("-", at: 13)
+
+            if let uuid = UUID(uuidString: tokens.joined(separator: "").uppercased()) {
+                return uuid.uuidString
             }
-            return tokens.joined(separator: "").uppercased()
         }
-        
-        return md5_legacy
+        return tokens.joined(separator: "").uppercased()
     }
 }

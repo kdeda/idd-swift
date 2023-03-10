@@ -13,6 +13,5 @@ public extension DateFormatter {
         self.init()
         self.locale = Locale.init(identifier: "en_US_POSIX")
         self.dateFormat = formatString
-        self.formatterBehavior = .behavior10_4
     }
 }

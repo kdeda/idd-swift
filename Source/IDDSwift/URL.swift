@@ -11,6 +11,9 @@ import Log4swift
 #if os(macOS)
 import Cocoa
 #endif
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 public extension URL {
     static let logger = Log4swift["URL"]
@@ -352,7 +355,12 @@ public extension URL {
             
             URL.logger.error("error: '\(errorString)' filePath: '\(self.path)'")
         } else {
+#if os(macOS)
             return fileStat.st_ino
+#else
+            // for linux
+            return UInt64(fileStat.st_ino)
+#endif
         }
         // we should not get here ...
         //
@@ -615,29 +623,36 @@ public extension URL {
     
     // given a remote url, got fetch the data as string and return it await mode
     //
-    var fetchAsString: String {
-        var rv = ""
-        let sessionConfig = URLSessionConfiguration.default
-        let session = URLSession(configuration: sessionConfig)
+    func fetchAsString() async -> String {
         let request = URLRequest(url: self)
-        let semaphore = DispatchSemaphore(value: 0)
-        let task = session.downloadTask(with: request) { (tempLocalUrl, response, error) in
-            if let tempLocalUrl = tempLocalUrl, error == nil {
-                // Success
-                if let statusCode = (response as? HTTPURLResponse)?.statusCode {
-                    URL.logger.info("Successfully downloaded. Status code: \(statusCode)")
+
+        let data: Data = await withCheckedContinuation { continuation in
+            URLSession.shared.dataTask(with: request) { data, _, _ in
+                guard let data = data else {
+                    URL.logger.error("url: '\(self)'")
+                    continuation.resume(returning: Data())
+                    return
                 }
-                
-                rv = (try? String(contentsOf: tempLocalUrl)) ?? ""
-            }
-            else if let error = error {
-                URL.logger.error("Error took place while downloading a file. Error description: '\(error.localizedDescription)'")
-            }
-            semaphore.signal()
+                continuation.resume(returning: data)
+            }.resume()
         }
-        task.resume()
-        _ = semaphore.wait(timeout: .distantFuture)
-        return rv
+        return String(data: data, encoding: .utf8) ?? ""
+
+        // https://diegolavalle.com/posts/2021-11-11-urlsession-concurrency-linux/
+        // do {
+        //     let (data, response) = try await URLSession.shared.data(for: request)
+        //     guard (response as? HTTPURLResponse)?.statusCode == 200
+        //     else {
+        //         URL.logger.error("url: '\(self)'")
+        //         // throw ServerError.emailServerError
+        //         return ""
+        //     }
+        //     return String(data: data, encoding: .utf8) ?? ""
+        // } catch {
+        //     URL.logger.error("url: '\(self)'")
+        //     URL.logger.error("error: '\(error)'")
+        // }
+        // return ""
     }
     
     func ejectVolume() -> Bool {
@@ -744,14 +759,18 @@ public extension URL {
         }
     }
     
-    @available(macOS 11, *)
     /// Returns an array of immediate child urls, without recursing deep into the file hierarchy
     var contentsOfDirectory: [URL] {
+#if os(macOS)
         (try? FileManager.default.contentsOfDirectory(
             at: self,
             includingPropertiesForKeys: nil,
             options: .producesRelativePathURLs
         )) ?? []
+#else
+        URL.logger.error("error: NOOP for non macOS platforms")
+        return []
+#endif
     }
 }
 
