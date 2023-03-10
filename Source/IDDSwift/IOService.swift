@@ -12,9 +12,7 @@ import Foundation
 import Log4swift
 
 public struct IOService {
-    public static var logger: Logger = {
-        return Log4swift.getLogger("IOService")
-    }()
+    public static let logger = Log4swift["IOService"]
 
     public static func test() {
         // debug

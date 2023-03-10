@@ -144,6 +144,10 @@ public extension Process {
          This can come handy when doing verbose type work.
          */
         standardOutputPipe.fileHandleForReading.readabilityHandler = { (file: FileHandle) in
+#if os(macOS)
+            objc_sync_enter(self)
+            defer { objc_sync_exit(self) }
+#endif
             let data = file.availableData
             
             // easy peasy in debug mode we will be more verbose with child output
@@ -151,16 +155,19 @@ public extension Process {
             if logger.isDebug {
                 let logMessage = (String(data: data, encoding: .utf8) ?? "unknown")
                     .trimmingCharacters(in: CharacterSet.controlCharacters)  // remove last new line
-                
-                for currentAppender in logger.appenders {
-                    currentAppender.performLog(logMessage, level: .Info, info: LogInfoDictionary())
-                }
+
+                logger.debug("\(logMessage)")
+                // for currentAppender in logger.appenders {
+                //     currentAppender.performLog(logMessage, level: .Info, info: LogInfoDictionary())
+                // }
             }
-            objc_sync_enter(self)
             processData.output.append(data)
-            objc_sync_exit(self)
         }
         standardErrorPipe.fileHandleForReading.readabilityHandler = { (file: FileHandle) in
+#if os(macOS)
+            objc_sync_enter(self)
+            defer { objc_sync_exit(self) }
+#endif
             let data = file.availableData
             
             // easy peasy in debug mode we will be more verbose with child output
@@ -169,13 +176,12 @@ public extension Process {
                 let logMessage = (String(data: data, encoding: .utf8) ?? "unknown")
                     .trimmingCharacters(in: CharacterSet.controlCharacters)  // remove last new line
                 
-                for currentAppender in logger.appenders {
-                    currentAppender.performLog(logMessage, level: .Error, info: LogInfoDictionary())
-                }
+                logger.debug("\(logMessage)")
+                // for currentAppender in logger.appenders {
+                //     currentAppender.performLog(logMessage, level: .Info, info: LogInfoDictionary())
+                // }
             }
-            objc_sync_enter(self)
             processData.error.append(data)
-            objc_sync_exit(self)
         }
 
         self.terminationHandler = { (process: Process) in

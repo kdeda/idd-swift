@@ -25,7 +25,6 @@ public extension Bundle {
      * To unpack use the counter part daemonVersion
      */
     var daemonVersion: String {
-        let logger = Log4swift.getLogger(self)
         let rv: String = {
             let json = [
                 "CFBundleShortVersionString": Bundle.main[.info, "CFBundleShortVersionString", "1.0.1"],
@@ -37,28 +36,27 @@ public extension Bundle {
                 
                 return String(data: jsonBytes, encoding: .utf8)!
             } catch let error as NSError {
-                logger.error("error: '\(error)'")
-                logger.error("json: '\(json)'")
+                Log4swift[Self.self].error("error: '\(error)'")
+                Log4swift[Self.self].error("json: '\(json)'")
                 return ""
             }
         }()
         
-        logger.info("daemonVersion: '\(rv)'")
+        Log4swift[Self.self].info("daemonVersion: '\(rv)'")
         return rv
     }
     
     func daemonVersion(fromJSON daemonVersionJSON: String) -> [String: String] {
         if let jsonBytes = daemonVersionJSON.data(using: .utf8) {
-            let logger = Log4swift.getLogger(self)
-            
+
             do {
                 if let daemonVersion = try JSONSerialization.jsonObject(with: jsonBytes, options: .allowFragments) as? [String : String] {
-                    logger.info("result: '\(daemonVersion)'")
+                    Log4swift[Self.self].info("result: '\(daemonVersion)'")
                     return daemonVersion
                 }
             } catch let error as NSError {
-                logger.error("error: '\(error)'")
-                logger.error("daemonVersionJSON: '\(daemonVersionJSON)'")
+                Log4swift[Self.self].error("error: '\(error)'")
+                Log4swift[Self.self].error("daemonVersionJSON: '\(daemonVersionJSON)'")
             }
         }
         

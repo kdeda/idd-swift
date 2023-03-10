@@ -17,10 +17,6 @@ public extension FileManager {
     private static var mountedVolumesLastFetchDate = Date.distantPast
     private static var registerForWorkSpaceNotifications = false
 
-    static let logger: Logger = {
-        return Log4swift.getLogger("FileManager")
-    }()
-
     /**
      it will return false if the file exists and we could not remove it
      */
@@ -30,8 +26,8 @@ public extension FileManager {
                 try FileManager.default.removeItem(at: pathURL)
             }
         } catch {
-            Self.logger.error("failed to remove: '\(pathURL.path)'")
-            Self.logger.error("error: '\(error.localizedDescription)'")
+            Log4swift[Self.self].error("failed to remove: '\(pathURL.path)'")
+            Log4swift[Self.self].error("error: '\(error.localizedDescription)'")
             return false
         }
         return true
@@ -76,14 +72,14 @@ public extension FileManager {
             .filter { !$0.isReadable }
         let rv = inaccessibleURLs.isEmpty
         
-        // Self.logger.info("process: '\(ProcessInfo.processInfo.processName)' homeDirectory: '\(homeDirectory.path)' hasFullDiskAccess: '\(rv)'")
+        // Log4swift[Self.self].info("process: '\(ProcessInfo.processInfo.processName)' homeDirectory: '\(homeDirectory.path)' hasFullDiskAccess: '\(rv)'")
         if !rv {
             let inaccessiblePaths = inaccessibleURLs
                 .map(\.path)
                 .prefix(4)
                 .joined(separator: "',\n\t'")
-            Self.logger.info("process: '\(ProcessInfo.processInfo.processName)' homeDirectory: '\(homeDirectory.path)' hasFullDiskAccess: '\(rv)'")
-            Self.logger.info("process: '\(ProcessInfo.processInfo.processName)' cantAccess: \n\t'\(inaccessiblePaths)'")
+            Log4swift[Self.self].info("process: '\(ProcessInfo.processInfo.processName)' homeDirectory: '\(homeDirectory.path)' hasFullDiskAccess: '\(rv)'")
+            Log4swift[Self.self].info("process: '\(ProcessInfo.processInfo.processName)' cantAccess: \n\t'\(inaccessiblePaths)'")
         }
         return rv
     }
@@ -97,8 +93,8 @@ public extension FileManager {
             try FileManager.default.createDirectory(at: pathURL, withIntermediateDirectories: true, attributes: nil)
             return pathURL.fileExist
         } catch {
-            Self.logger.error("failed to create: '\(pathURL.path)'")
-            Self.logger.error("error: '\(error.localizedDescription)'")
+            Log4swift[Self.self].error("failed to create: '\(pathURL.path)'")
+            Log4swift[Self.self].error("error: '\(error.localizedDescription)'")
         }
         return false
     }
@@ -114,23 +110,23 @@ public extension FileManager {
 #endif
     }
 
+#if os(macOS)
     @objc private func didMountNotification(_ notification: NSNotification) {
         objc_sync_enter(self)
-        defer {
-            objc_sync_exit(self)
-        }
-        Self.logger.info("notification: '\(notification.userInfo ?? [AnyHashable: Any]())'")
+        defer { objc_sync_exit(self) }
+
+        Log4swift[Self.self].info("notification: '\(notification.userInfo ?? [AnyHashable: Any]())'")
         Self.mountedVolumesLastFetchDate = Date.distantPast
     }
     
     @objc private func didUnmountNotification(_ notification: NSNotification) {
         objc_sync_enter(self)
-        defer {
-            objc_sync_exit(self)
-        }
-        Self.logger.info("notification: '\(notification.userInfo ?? [AnyHashable: Any]())'")
+        defer { objc_sync_exit(self) }
+
+        Log4swift[Self.self].info("notification: '\(notification.userInfo ?? [AnyHashable: Any]())'")
         Self.mountedVolumesLastFetchDate = Date.distantPast
     }
+#endif
 
     /*
      * /dev
@@ -139,10 +135,9 @@ public extension FileManager {
      * /Volumes/...
      */
     func mountedVolumes(_ refetch: Bool) -> [String] {
+#if os(macOS)
         objc_sync_enter(self)
-        defer {
-            objc_sync_exit(self)
-        }
+        defer { objc_sync_exit(self) }
 
         func fetchMountedVolumes() -> [String] {
             var statfs: UnsafeMutablePointer<statfs>?
@@ -171,21 +166,26 @@ public extension FileManager {
         guard refetch,
               -Self.mountedVolumesLastFetchDate.timeIntervalSinceNow * 1000 > 1000
         else {
-            // Self.logger.info("cache: '\(-Self.mountedVolumesLastFetchDate.timeIntervalSinceNow * 1000)'")
+            // Log4swift[Self.self].info("cache: '\(-Self.mountedVolumesLastFetchDate.timeIntervalSinceNow * 1000)'")
             return Self.mountedVolumes }
         
-        // Self.logger.info("fetch: '\(-Self.mountedVolumesLastFetchDate.timeIntervalSinceNow * 1000)'")
+        // Log4swift[Self.self].info("fetch: '\(-Self.mountedVolumesLastFetchDate.timeIntervalSinceNow * 1000)'")
         registerForWorkSpaceNotifications()
         Self.mountedVolumes = fetchMountedVolumes()
         Self.mountedVolumesLastFetchDate = Date()
         return Self.mountedVolumes
+#else
+        return []
+#endif
     }
     
     func isMountedVolume(_ basePath: String) -> Bool {
+#if os(macOS)
         objc_sync_enter(self)
-        defer {
-            objc_sync_exit(self)
-        }
+        defer { objc_sync_exit(self) }
         return Self.mountedVolumes.firstIndex(where: { $0 == basePath}) != nil
+#else
+        return false
+#endif
     }
 }

@@ -13,9 +13,7 @@ import Log4swift
 public extension String {
     static let ZERO_CHAR = Character(UnicodeScalar(48)) // 0
     static let ONE_CHAR = Character(UnicodeScalar(49)) // 1
-    static let logger: Logger = {
-        return Log4swift.getLogger("String")
-    }()
+    static let logger = Log4swift["String"]
 
     private func _nsRange(from range: Range<Index>?) -> NSRange {
         let utf16view = self.utf16

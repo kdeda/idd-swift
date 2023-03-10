@@ -11,10 +11,6 @@ import Cocoa
 import Log4swift
 
 public extension NSWorkspace {
-    static let logger: Logger = {
-        return Log4swift.getLogger("NSWorkSpace")
-    }()
-
     private static var notifyAbout_DS_Store_Files_once = true
     // https://apple.stackexchange.com/questions/299138/show-hidden-files-files-in-finder-except-ds-store/300210#300210
     //
@@ -100,7 +96,7 @@ public extension NSWorkspace {
 //     * killall Finder
 //     */
 //    public func reveal(inFinder pathURL: URL, inWindow window: NSWindow) {
-//        NSWorkspace.logger.info("path: '\(pathURL.path)'")
+//        Log4swift[Self.self].logger.info("path: '\(pathURL.path)'")
 //
 //        if pathURL.path.hasSuffix(".DS_Store") {
 //            if (NSWorkspace.majorOSVersion == 10 && NSWorkspace.minorOSVersion >= 12) || (NSWorkspace.majorOSVersion == 11) {
@@ -134,7 +130,7 @@ public extension NSWorkspace {
 //                self.showHiddenFilesInFinder = true
 //                break
 //            default:
-//                NSWorkspace.logger.error("unmanaged returnCode: '\(responseCode)'")
+//                Log4swift[Self.self].error("unmanaged returnCode: '\(responseCode)'")
 //            }
 //        }
 //
@@ -157,7 +153,7 @@ public extension NSWorkspace {
 //        if !self.selectFile(pathURL.path, inFileViewerRootedAtPath: "") {
 //            // should not get here ...
 //            //
-//            NSWorkspace.logger.error("Could not select: '\(pathURL.path)'")
+//            Log4swift[Self.self].error("Could not select: '\(pathURL.path)'")
 //        }
 //    }
 }
@@ -185,7 +181,7 @@ public extension Process {
                 if runningProcessIdentifier != ProcessInfo.processInfo.processIdentifier {
                     // don't kill ourselves
                     //
-                    NSWorkspace.logger.info("terminate: '\(runningBundleIdentifier).\(runningProcessIdentifier)'")
+                    Log4swift[Self.self].info("terminate: '\(runningBundleIdentifier).\(runningProcessIdentifier)'")
                     runningApplication.terminate()
                     // give it a second to respond
                     Thread.sleep(forTimeInterval: 1.0)

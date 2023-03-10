@@ -13,10 +13,8 @@ import Cocoa
 #endif
 
 public extension URL {
-    static let logger: Logger = {
-        return Log4swift.getLogger("URL")
-    }()
-    
+    static let logger = Log4swift["URL"]
+
     /**
      A URL identifying the user's home directory, typically in `/Users`.
      Calling `NSHomeDirectory()` from a sandboxed app will return an descendant of the app sandbox.
