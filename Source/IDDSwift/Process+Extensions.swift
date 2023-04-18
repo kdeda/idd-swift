@@ -85,29 +85,6 @@ public extension Process {
         let command = self.executableURL?.path ?? ""
         let logger = Log4swift[Self.self]
 
-        guard FileManager.default.hasFullDiskAccess
-        else {
-            let executablePath = Bundle.main.executablePath ?? "executablePath should be defined"
-            /**
-             /usr/bin/codesign -vvv  /Users/kdeda/Library/Developer/Xcode/DerivedData/scripts-dfnvbbpqjqmrnoawwethnlsgeqvj/Build/Products/Debug/iddTools
-             */
-            logger.error(
-                """
-
-                    --------------------------------
-                    Please enable Full Disk Access for this app/tool
-                    open x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles
-                    open \(Bundle.main.executableURL!.deletingLastPathComponent().path)
-                    and add  \(Bundle.main.executableURL!.lastPathComponent)  to the list of allowed binaries"
-                
-                    to avoid problems, make sure the binary is signed
-                
-                    /usr/bin/codesign --verbose --force --timestamp --options=runtime --strict --sign 'Developer ID Application: ID-DESIGN INC. (ME637H7ZM9)' \(executablePath)
-                    ----
-                
-                """
-            )
-            return .failure(.fullDiskAccess) }
         guard URL(fileURLWithPath: command).fileExist
         else { return .failure(.commandNotFound(command)) }
 

@@ -37,6 +37,40 @@ public extension FileManager {
         return hasFullDiskAccess(forHomeDirectory: URL.home)
     }
 
+    /**
+     This is a convenience helper to call in case you fail the hasFullDiskAccess test
+     ```
+     guard FileManager.default.hasFullDiskAccess
+     else {
+         FileManager.default.fullDiskAccessTips()
+         return
+     }
+     ```
+     */
+    func hasFullDiskAccessTips() {
+        let executable = Bundle.main.executableURL ?? URL(fileURLWithPath: "/tmp/this/should/not/happen")
+
+        /**
+         /usr/bin/codesign -vvv  /Users/kdeda/Library/Developer/Xcode/DerivedData/scripts-dfnvbbpqjqmrnoawwethnlsgeqvj/Build/Products/Debug/xchelper
+         */
+        Log4swift[Self.self].error(
+            """
+            
+                --------------------------------
+                Please enable Full Disk Access for this executable
+                open x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles
+                open \(executable.deletingLastPathComponent().path)
+                and add  \(executable.lastPathComponent)  to the list of allowed binaries"
+            
+                to avoid problems, make sure the binary is signed
+            
+                /usr/bin/codesign --verbose --force --timestamp --options=runtime --strict --sign 'Developer ID Application: ID-DESIGN INC. (ME637H7ZM9)' \(executable.path)
+                ----
+            
+            """
+        )
+    }
+
     // true if any of these files exist and are readable by the current app
     //
     func hasFullDiskAccess(forHomeDirectory homeDirectory: URL) -> Bool {
