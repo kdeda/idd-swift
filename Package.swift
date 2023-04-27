@@ -12,7 +12,7 @@ let package = Package(
     products: [
         .library(
             name: "IDDSwift",
-            targets: ["IDDSwift"]),
+            targets: ["IDDSwift", "IDDSwiftTests"]),
     ],
     dependencies: [
         .package(url: "https://github.com/kdeda/idd-log4-swift.git", "2.0.1" ..< "3.0.0"),
@@ -31,6 +31,7 @@ let package = Package(
         .testTarget(
             name: "IDDSwiftTests",
             dependencies: [
+                "IDDSwift",
                 .product(name: "Log4swift", package: "idd-log4-swift"),
                 .product(name: "ZSTDSwift", package: "idd-zstd-swift"),
                 .product(name: "Crypto", package: "swift-crypto")

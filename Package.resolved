@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/kdeda/idd-log4-swift.git",
       "state" : {
-        "revision" : "dd3f627957cdd97a58f032db114a71f4db21ef94",
-        "version" : "2.0.1"
+        "revision" : "0db2a4cf81631bdff5dbdee445562686e6dab750",
+        "version" : "2.0.2"
       }
     },
     {
@@ -23,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-crypto.git",
       "state" : {
-        "revision" : "da0fe44138ab86e380f40a2acbd8a611b07d3f64",
-        "version" : "2.4.0"
+        "revision" : "33a20e650c33f6d72d822d558333f2085effa3dc",
+        "version" : "2.5.0"
       }
     },
     {
