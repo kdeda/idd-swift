@@ -12,7 +12,7 @@ let package = Package(
     products: [
         .library(
             name: "IDDSwift",
-            targets: ["IDDSwift", "IDDSwiftTests"]),
+            targets: ["IDDSwift"]),
     ],
     dependencies: [
         .package(url: "https://github.com/kdeda/idd-log4-swift.git", "2.0.1" ..< "3.0.0"),

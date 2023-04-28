@@ -23,24 +23,38 @@ final class IDDSwiftTests: XCTestCase {
     }
     
     /**
-     Create a test file
+     Create the file where the asyncOutput will go
+     touch /tmp/asyncOutput.log
+     you can tail it
+     tail -f /tmp/asyncOutput.log
+
+     Create the test file
      touch /tmp/test.log
      append to it
      echo "`date` 123 this is cool" >> /tmp/test.log^C
      echo "`date +"%Y-%m-%d %H:%M:%S"` magical shrums" >> /tmp/test.log
+     echo "`date +"%Y-%m-%d %H:%M:%S"` magical shrums `uuidgen`" >> /tmp/test.log
      */
-    func testProcessOutput() async {
+    func testAsyncOutput() async {
+        let logFile = URL(fileURLWithPath: "/tmp/asyncOutput.log")
         let process = Process(URL(fileURLWithPath: "/usr/bin/tail"), [
             "-f",
             "/tmp/test.log"
         ])
-//        let process = Process(URL(fileURLWithPath: "/usr/bin/grep"), [
-//            "Magical Shrums",
-//            "/tmp/test.log"
-//        ])
+        // let process = Process(URL(fileURLWithPath: "/usr/bin/grep"), [
+        //     "Magical Shrums",
+        //     "/tmp/test.log"
+        // ])
         
         Log4swift[Self.self].info("-----")
         Log4swift[Self.self].info("Starting ...")
+        guard let fileHandle = try? FileHandle(forWritingTo: logFile)
+        else {
+            // make sure the file is there and available for writing
+            XCTFail("Failed to create write handle on: '\(logFile.path)'", file: #file, line: #line)
+            return
+        }
+        
         for await output in process.asyncOutput(timeOut: 60) {
             switch output {
             case let .error(error):
@@ -59,14 +73,16 @@ final class IDDSwiftTests: XCTestCase {
                 Log4swift[Self.self].info("-----")
 
             case let .stdout(data):
+                try? fileHandle.write(contentsOf: data)
+                
                 let message = String(data: data, encoding: .utf8) ?? ""
                 fputs(message, stdout)
-                // Log4swift[Self.self].info("stdout: \(message)")
                 
             case let .stderr(data):
+                try? fileHandle.write(contentsOf: data)
+
                 let message = String(data: data, encoding: .utf8) ?? ""
                 fputs(message, stdout)
-                // Log4swift[Self.self].error("stderr: \(message)")
             }
         }
         Log4swift[Self.self].info("Terminated")
