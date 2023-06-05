@@ -33,10 +33,10 @@ public struct EmailValidator {
         var isValid = true
 #if  os(iOS) || os(watchOS) || os(tvOS)
         isValid = EmailValidator.__emailPredicate.evaluate(with: emailAddress)
-#endif
         if !isValid {
             Log4swift[Self.self].error("invalid: '\(emailAddress)'")
         }
+#endif
         return isValid
     }
 }
