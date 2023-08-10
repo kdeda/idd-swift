@@ -88,4 +88,44 @@ final class IDDSwiftTests: XCTestCase {
         Log4swift[Self.self].info("Terminated")
         Log4swift[Self.self].info("-----")
     }
+
+    /**
+     Create a shell script
+     touch /tmp/tmutil
+     chmod +x /tmp/tmutil
+     with these contents
+     #!/bin/sh
+     #
+     #
+
+     echo "Test 123, Test 123, Test 123"
+     sleep 4
+     exit 0
+     */
+    func testProcessFetchString() async {
+        // we want to log
+        UserDefaults.standard.setValue("D", forKey: "IDDSwift.Process")
+
+        let tmutilURL = URL(fileURLWithPath: "/usr/bin/tmutil")
+        // let tmutilURL = URL(fileURLWithPath: "/tmp/tmutil")
+
+        //  /usr/bin/tmutil listbackups
+        //  /usr/bin/tmutil machinedirectory
+        //  /usr/bin/tmutil destinationinfo -X
+        //  /usr/bin/tmutil uniquesize /Volumes/Vault/Backups.backupdb/macpro3000/2015-06-09-113054/Yosemite\ XP941/Users/kdeda/
+
+        do {
+            let processData = try Process.processData(taskURL: tmutilURL, arguments: ["machinedirectory"], timeOut: 3.0)
+
+            Log4swift[Self.self].info("processData.stdout: '\(processData.outputString)'")
+            Log4swift[Self.self].info("processData.stderr: '\(processData.errorString)'")
+        } catch {
+            Log4swift[Self.self].info("processError.error: '\(error)'")
+        }
+
+        XCTAssert(true, "Failed to create write handle on")
+        Log4swift[Self.self].info("Completed")
+        Log4swift[Self.self].info("-----")
+    }
+
 }

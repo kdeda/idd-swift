@@ -61,7 +61,7 @@ public struct IOService {
         if diskInfo["DADiskRoles"] == nil {
             diskInfo["DADiskRoles"] = diskRoles(url: url) as AnyObject
         }
-        if diskInfo.isEmpty {
+        if diskInfo["DAVolumeType"] == nil || diskInfo["DAMediaEjectable"] == nil {
             let fileSystemInfo = url.fileSystemInfo
 
             if diskInfo["DAVolumeType"] == nil {

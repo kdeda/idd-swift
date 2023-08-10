@@ -23,11 +23,13 @@ public extension Process {
         public var error = Data()
         
         public var outputString: String {
-            String(data: output, encoding: .utf8) ?? "unknown"
+            let rv = String(data: output, encoding: .utf8) ?? "unknown"
+            return rv.trimmingCharacters(in: CharacterSet.controlCharacters)  // remove last new line
         }
         
         public var errorString: String {
-            String(data: error, encoding: .utf8) ?? "unknown"
+            let rv = String(data: error, encoding: .utf8) ?? "unknown"
+            return rv.trimmingCharacters(in: CharacterSet.controlCharacters)  // remove last new line
         }
         
         public var allString: String {
@@ -76,18 +78,30 @@ public extension Process {
     }
 
     /**
+     If all goes well, returns ProcessData
+     If any problem happens throw ProcessError
+
      This code will fail due to security protections in the mac
      Make sure we hasFullDiskAccess returns true
+
+     If the child task takes to long and is killed we still get any partial output from it
+     Not sure if this can be a problem
+     Maybe we should change this to throw if we force terminate the child task
+
+     August 2023
      */
-    func fetchData(
+    func processData(
         timeOut timeOutInSeconds: Double = 0
-    ) -> Result<ProcessData, ProcessError> {
+    ) throws -> ProcessData {
+        let logger = Log4swift["IDDSwift.Process"]
         let timeOutInMilliseconds = Int(timeOutInSeconds * 1_000)
         let command = self.executableURL?.path ?? ""
-        let logger = Log4swift["IDDSwift.Process"]
+        let arguments = (self.arguments ?? []).joined(separator: " ")
+        let taskDescription = "'\(command)' \(arguments)"
 
+        logger.info("\(taskDescription)")
         guard URL(fileURLWithPath: command).fileExist
-        else { return .failure(.commandNotFound(command)) }
+        else { throw ProcessError.commandNotFound(command) }
 
         let semaphore = DispatchSemaphore(value: 0)
         var processData = ProcessData()
@@ -97,23 +111,24 @@ public extension Process {
         self.standardOutput = standardOutputPipe
         self.standardError = standardErrorPipe
 
-        // if (IDDLogDebugLevel(self)) IDDLogDebug(self, _cmd, @"%@ \"%@\"", command, [arguments componentsJoinedByString:@"\" \""]);
-        let taskDescription = "\(command + " " + (self.arguments ?? []).joined(separator: " "))"
-        logger.debug("\(taskDescription)")
         if timeOutInSeconds > 0 {
             DispatchQueue.global().asyncAfter(deadline: .now() + .milliseconds(timeOutInMilliseconds)) { [weak self] in
+                // this will kill the child task if it's taking longer that timeOutInSeconds
                 guard let self = self
                 else { return }
                 guard self.isRunning
                 else {
-                    logger.info("'\(taskDescription)' is not running any longer")
+                    logger.info("\(taskDescription) status: 'is not running any longer'")
                     return
                 }
-                logger.info("'\(taskDescription)' will be terminated immediately")
+                logger.info("\(taskDescription) status: 'has timed out and will be terminated immediately'")
+                // terminate nicely
                 self.terminate()
+                // kill the mf
                 Process.killProcess(pid: Int(self.processIdentifier))
-                logger.info("'\(taskDescription)' should be terminated now.")
-                logger.info("'\(taskDescription)' self.isRunning: \(self.isRunning ? "YES" : "NO")")
+
+                let status = !self.isRunning ? "was found terminated" : "should have been terminated, but it seems to be hanging on, this should not happen ..."
+                logger.info("\(taskDescription) status: '\(status)'")
             }
         }
 
@@ -127,14 +142,16 @@ public extension Process {
             defer { objc_sync_exit(self) }
 #endif
             let data = file.availableData
-            
+            guard !data.isEmpty
+            else { return }
+
             // easy peasy in debug mode we will be more verbose with child output
             // otherwise it will be hidden but accumulated in the processData buffer
-            if logger.isDebug {
+            if logger.logLevel == .trace {
                 let logMessage = (String(data: data, encoding: .utf8) ?? "unknown")
                     .trimmingCharacters(in: CharacterSet.controlCharacters)  // remove last new line
 
-                logger.debug("\(logMessage)")
+                logger.trace("stdout: \(logMessage)")
                 // for currentAppender in logger.appenders {
                 //     currentAppender.performLog(logMessage, level: .Info, info: LogInfoDictionary())
                 // }
@@ -147,14 +164,16 @@ public extension Process {
             defer { objc_sync_exit(self) }
 #endif
             let data = file.availableData
-            
+            guard !data.isEmpty
+            else { return }
+
             // easy peasy in debug mode we will be more verbose with child output
             // otherwise it will be hidden but accumulated in the processData buffer
-            if logger.isDebug {
+            if logger.logLevel == .trace {
                 let logMessage = (String(data: data, encoding: .utf8) ?? "unknown")
                     .trimmingCharacters(in: CharacterSet.controlCharacters)  // remove last new line
                 
-                logger.debug("\(logMessage)")
+                logger.trace("stderr: \(logMessage)")
                 // for currentAppender in logger.appenders {
                 //     currentAppender.performLog(logMessage, level: .Info, info: LogInfoDictionary())
                 // }
@@ -168,7 +187,7 @@ public extension Process {
             standardOutputPipe.fileHandleForReading.readabilityHandler = nil
             standardErrorPipe.fileHandleForReading.readabilityHandler = nil
             
-            // Log4swift["IDDSwift.Process"].info("command: '\(command)' terminated")
+            // logger.info("\(command) terminated")
             semaphore.signal()
         }
 
@@ -176,13 +195,17 @@ public extension Process {
             try self.run()
             if timeOutInMilliseconds > 0 {
                 // if we have a timeOutInSeconds, wait here for the timeout
-                // or the command to terminate happily, adding a
+                // or the command to terminate happily, adding a tinny bit to avoid collisions
+                // if the command ends before the timeout we will exit out of here
                 let timeOutInMilliseconds_ = timeOutInMilliseconds + 120
+
+                logger.trace("\(taskDescription) waiting for: '\(timeOutInMilliseconds)'")
                 _ = semaphore.wait(timeout: .now() + .milliseconds(timeOutInMilliseconds_))
             }
-            // Log4swift["IDDSwift.Process"].info("command: '\(command)' ended")
+            // logger.info("\(command) ended")
         } catch {
-            logger.error("'\(taskDescription)' error: \(error)")
+            // TODO: Should we throw here !!!
+            logger.error("\(taskDescription) error: \(error)")
         }
         
         if self.isRunning {
@@ -204,15 +227,14 @@ public extension Process {
                 Thread.sleep(forTimeInterval: 0.1)
                 waitForTermination += 1
                 if waitForTermination % 20 == 0 {
-                    Log4swift["IDDSwift.Process"].info("command: '\(command)' waiting for termination")
+                    logger.info("\(taskDescription) waiting for termination")
                 }
             }
             if self.isRunning {
                 // the task should be terminated by now, but in case it is not we try to force termination
                 // Klajd Deda, October 28, 2008
                 //
-                Log4swift["IDDSwift.Process"].error("We have taken longer than the maxWait of '\(maxWait) seconds' and will terminate this task now.")
-                Log4swift["IDDSwift.Process"].error("The task '\(command)' is still running !!!")
+                logger.error("\(taskDescription) has taken longer than the maxWait of '\(maxWait) seconds' and will be terminated right now")
                 self.terminate()
             }
         }
@@ -221,35 +243,38 @@ public extension Process {
         standardOutputPipe.fileHandleForWriting.closeFile()
         standardErrorPipe.fileHandleForReading.closeFile()
         standardErrorPipe.fileHandleForWriting.closeFile()
-        return .success(processData)
+        return processData
     }
     
     /**
      Convenience
      */
-    static func fetchData(
-        taskURL: URL,
-        arguments: [String],
-        timeOut timeOutInSeconds: Double = 0
-    ) -> Result<ProcessData, ProcessError> {
-        Log4swift["IDDSwift.Process"].info("\(taskURL.path) \(arguments.joined(separator: " "))")
-
-        return Process(taskURL, arguments).fetchData(timeOut: timeOutInSeconds)
-    }
-
     static func fetchString(
         taskURL: URL,
         arguments: [String],
         timeOut timeOutInSeconds: Double = 0
     ) -> String {
-        Log4swift["IDDSwift.Process"].info("\(taskURL.path) \(arguments.joined(separator: " "))")
+        let process = Process(taskURL, arguments)
 
-        let result = Process(taskURL, arguments)
-            .fetchData(timeOut: timeOutInSeconds)
-            .map { $0.outputString }
-        
-        return (try? result.get()) ?? ""
+        do {
+            let processData = try process.processData(timeOut: timeOutInSeconds)
+            return processData.outputString
+        } catch {
+            return ""
+        }
     }
+
+    /**
+     Convenience
+     */
+    static func processData(
+        taskURL: URL,
+        arguments: [String],
+        timeOut timeOutInSeconds: Double = 0
+    ) throws -> ProcessData {
+        try Process(taskURL, arguments).processData(timeOut: timeOutInSeconds)
+    }
+
 }
 
 public extension Result where Success == Process.ProcessData, Failure == Process.ProcessError {
