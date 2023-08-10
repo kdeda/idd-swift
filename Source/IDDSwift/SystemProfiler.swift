@@ -17,7 +17,7 @@ public struct SystemProfiler {
     public static let logger = Log4swift["SystemProfiler"]
 
     public var storageData: [SystemProfiler.StorageData] {
-        let xml = Process.fetchString(taskURL: SystemProfiler.profilerURL, arguments: ["-xml", "SPStorageDataType"], timeOut: 5.0)
+        let xml = Process.stdString(taskURL: SystemProfiler.profilerURL, arguments: ["-xml", "SPStorageDataType"], timeOut: 5.0)
 
         do {
             let decoder = PropertyListDecoder()

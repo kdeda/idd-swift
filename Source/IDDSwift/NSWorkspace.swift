@@ -75,7 +75,7 @@ public extension NSWorkspace {
                     UserDefaults.standard.synchronize()
                     // reboot Finder
                     //
-                    _ = Process.fetchString(taskURL: URL(fileURLWithPath: "/usr/bin/killall"), arguments: ["Finder"])
+                    _ = Process.stdString(taskURL: URL(fileURLWithPath: "/usr/bin/killall"), arguments: ["Finder"])
                 }
             }
         }
@@ -165,7 +165,7 @@ public extension Process {
             Log4swift[Self.self].error("pid: '\(pid)' should be a positive number")
             return
         }
-        _ = Self.fetchString(taskURL: URL(fileURLWithPath: "/bin/kill"), arguments: ["-9", "\(pid)"])
+        _ = Self.stdString(taskURL: URL(fileURLWithPath: "/bin/kill"), arguments: ["-9", "\(pid)"])
     }
     
     static func killProcess(bundleIdentifiers: [String]) {
