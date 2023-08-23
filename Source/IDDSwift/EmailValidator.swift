@@ -15,7 +15,7 @@ import Log4swift
  Predicate strings and key-value coding are not supported in swift-corelibs-foundation
  */
 public struct EmailValidator {
-#if  os(iOS) || os(watchOS) || os(tvOS)
+#if  os(macOS)
     private static let __firstpart = "[A-Z0-9a-z_]([A-Z0-9a-z._%+-]{0,30}[A-Z0-9a-z])?"
     private static let __serverpart = "([A-Z0-9a-z]([A-Z0-9a-z-]{0,30}[A-Z0-9a-z])?\\.){1,5}"
     private static let __emailRegex = __firstpart + "@" + __serverpart + "[A-Za-z]{2,8}"
@@ -31,7 +31,7 @@ public struct EmailValidator {
         }
 
         var isValid = true
-#if  os(iOS) || os(watchOS) || os(tvOS)
+#if  os(macOS)
         isValid = EmailValidator.__emailPredicate.evaluate(with: emailAddress)
         if !isValid {
             Log4swift[Self.self].error("invalid: '\(emailAddress)'")
