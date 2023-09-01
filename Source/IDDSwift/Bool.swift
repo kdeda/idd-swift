@@ -22,4 +22,9 @@ public extension Bool {
             
         return ComparisonResult.orderedAscending
     }
+
+    var hasChanged: String {
+        self ? "'has changes ...'" : "'no changes ...'"
+    }
+
 }
