@@ -16,6 +16,9 @@ public extension FileManager {
     private static var mountedVolumes = [String]()
     private static var mountedVolumesLastFetchDate = Date.distantPast
     private static var registerForWorkSpaceNotifications = false
+#if os(macOS)
+    private static let lock = NSRecursiveLock()
+#endif
 
     /**
      it will return false if the file exists and we could not remove it
@@ -146,16 +149,16 @@ public extension FileManager {
 
 #if os(macOS)
     @objc private func didMountNotification(_ notification: NSNotification) {
-        objc_sync_enter(self)
-        defer { objc_sync_exit(self) }
+        Self.lock.lock()
+        defer { Self.lock.unlock() }
 
         Log4swift[Self.self].info("notification: '\(notification.userInfo ?? [AnyHashable: Any]())'")
         Self.mountedVolumesLastFetchDate = Date.distantPast
     }
     
     @objc private func didUnmountNotification(_ notification: NSNotification) {
-        objc_sync_enter(self)
-        defer { objc_sync_exit(self) }
+        Self.lock.lock()
+        defer { Self.lock.unlock() }
 
         Log4swift[Self.self].info("notification: '\(notification.userInfo ?? [AnyHashable: Any]())'")
         Self.mountedVolumesLastFetchDate = Date.distantPast
@@ -170,8 +173,8 @@ public extension FileManager {
      */
     func mountedVolumes(_ refetch: Bool) -> [String] {
 #if os(macOS)
-        objc_sync_enter(self)
-        defer { objc_sync_exit(self) }
+        Self.lock.lock()
+        defer { Self.lock.unlock() }
 
         func fetchMountedVolumes() -> [String] {
             var statfs: UnsafeMutablePointer<statfs>?
@@ -215,8 +218,8 @@ public extension FileManager {
     
     func isMountedVolume(_ basePath: String) -> Bool {
 #if os(macOS)
-        objc_sync_enter(self)
-        defer { objc_sync_exit(self) }
+        Self.lock.lock()
+        defer { Self.lock.unlock() }
         return Self.mountedVolumes.firstIndex(where: { $0 == basePath}) != nil
 #else
         return false

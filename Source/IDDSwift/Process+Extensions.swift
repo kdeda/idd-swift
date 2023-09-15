@@ -66,7 +66,7 @@ public extension Process {
      If all goes well, returns ProcessData
      If any problem happens throw ProcessError
 
-     This code will fail due to security protections in the mac
+     This code could fail due to Full Disk Access protection
      Make sure we hasFullDiskAccess returns true
 
      If the child task takes to long and is killed we still get any partial output from it
@@ -83,6 +83,9 @@ public extension Process {
         let command = self.executableURL?.path ?? ""
         let arguments = (self.arguments ?? []).joined(separator: " ")
         let taskDescription = "'\(command)' \(arguments)"
+#if os(macOS)
+        let lock = NSRecursiveLock()
+#endif
 
         logger.info("\(taskDescription)")
         guard URL(fileURLWithPath: command).fileExist
@@ -123,8 +126,8 @@ public extension Process {
          */
         standardOutputPipe.fileHandleForReading.readabilityHandler = { (file: FileHandle) in
 #if os(macOS)
-            objc_sync_enter(self)
-            defer { objc_sync_exit(self) }
+            lock.lock()
+            defer { lock.unlock() }
 #endif
             let data = file.availableData
             guard !data.isEmpty
@@ -145,8 +148,8 @@ public extension Process {
         }
         standardErrorPipe.fileHandleForReading.readabilityHandler = { (file: FileHandle) in
 #if os(macOS)
-            objc_sync_enter(self)
-            defer { objc_sync_exit(self) }
+            lock.lock()
+            defer { lock.unlock() }
 #endif
             let data = file.availableData
             guard !data.isEmpty
@@ -234,19 +237,34 @@ public extension Process {
     /**
      Convenience
      */
+    func stdString(
+        timeOut timeOutInSeconds: Double = 0
+    ) -> String {
+        do {
+            let processData = try self.processData(timeOut: timeOutInSeconds)
+            return processData.stdString
+        } catch {
+            return ""
+        }
+    }
+
+    /**
+     Will set the current dir for this instance.
+     */
+    func currentDir(_ to: URL) -> Self {
+        self.currentDirectoryURL = to
+        return self
+    }
+    /**
+     Convenience
+     */
     static func stdString(
         taskURL: URL,
         arguments: [String],
         timeOut timeOutInSeconds: Double = 0
     ) -> String {
-        let process = Process(taskURL, arguments)
-
-        do {
-            let processData = try process.processData(timeOut: timeOutInSeconds)
-            return processData.stdString
-        } catch {
-            return ""
-        }
+        Process(taskURL, arguments)
+            .stdString(timeOut: timeOutInSeconds)
     }
 
     /**
@@ -257,7 +275,8 @@ public extension Process {
         arguments: [String],
         timeOut timeOutInSeconds: Double = 0
     ) throws -> ProcessData {
-        try Process(taskURL, arguments).processData(timeOut: timeOutInSeconds)
+        try Process(taskURL, arguments)
+            .processData(timeOut: timeOutInSeconds)
     }
 
 }
