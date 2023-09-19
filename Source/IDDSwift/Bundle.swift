@@ -79,7 +79,7 @@ public extension Bundle {
     }
     
     // convenience access
-    subscript<T>(from: SectionType, key:String, defaultValue: T) -> T {
+    subscript<T>(from: SectionType, key: String, defaultValue: T) -> T {
         let dictionary: [String: Any]? = {
             switch from {
             case .info: return infoDictionary
@@ -111,7 +111,13 @@ public extension Bundle {
 
         public init() {
             id = Bundle.main.bundleIdentifier ?? "com.mycompany.myapp"
-            name = Bundle.main[.info, "CFBundleName", "myapp"]
+            /**
+             grab the localized value if there is one, otherwise fallback to info
+             the localized value can display something different than the value from the info plist
+             say "My Cool App", vs "MyCoolApp"
+             this allows us to display with spaces but have no spaces on file system
+             */
+            name = Bundle.main[.localizedInfo, "CFBundleName", Bundle.main[.info, "CFBundleName", "myapp"]]
             shortVersion = Bundle.main[.info, "CFBundleShortVersionString", "1.0.1"]
             buildNumber = Bundle.main[.info, "CFBundleVersion", "1010"]
             startDate = Date.init().stringWithDefaultFormat
