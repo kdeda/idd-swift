@@ -18,9 +18,10 @@ public extension Process {
     }
     
     struct ProcessData {
-        public var stdout = Data()
-        public var stderr = Data()
-        
+        private var stdout = Data()
+        private var stderr = Data()
+        private let lock = NSRecursiveLock()
+
         public var stdOutString: String {
             let rv = String(data: stdout, encoding: .utf8) ?? "unknown"
             return rv.trimmingCharacters(in: CharacterSet.controlCharacters)  // remove last new line
@@ -33,6 +34,26 @@ public extension Process {
         
         public var stdString: String {
             stdOutString + "\n" + stdErrorString
+        }
+
+        @discardableResult
+        public mutating func append(stdout data: Data) -> Data {
+            lock.withLock {
+                if !data.isEmpty {
+                    stdout.append(data)
+                }
+                return data
+            }
+        }
+
+        @discardableResult
+        public mutating func append(stderr data: Data) -> Data {
+            lock.withLock {
+                if !data.isEmpty {
+                    stderr.append(data)
+                }
+                return data
+            }
         }
     }
     
@@ -83,9 +104,6 @@ public extension Process {
         let command = self.executableURL?.path ?? ""
         let arguments = (self.arguments ?? []).joined(separator: " ")
         let taskDescription = "'\(command)' \(arguments)"
-#if os(macOS)
-        let lock = NSRecursiveLock()
-#endif
 
         logger.info("\(taskDescription)")
         guard URL(fileURLWithPath: command).fileExist
@@ -124,17 +142,10 @@ public extension Process {
          Encapsulate the logs or stdout/stderr from the child process in our logs.
          This can come handy when doing verbose type work.
          */
-        standardOutputPipe.fileHandleForReading.readabilityHandler = { (file: FileHandle) in
+        standardOutputPipe.fileHandleForReading.readabilityHandler = { fileHandle in
 #if os(macOS)
-            lock.lock()
-            defer { lock.unlock() }
-#endif
-            let data = file.availableData
-            guard !data.isEmpty
-            else { return }
+            let data = processData.append(stdout: fileHandle.availableData)
 
-            // easy peasy in debug mode we will be more verbose with child output
-            // otherwise it will be hidden but accumulated in the processData buffer
             if logger.logLevel == .trace {
                 let logMessage = (String(data: data, encoding: .utf8) ?? "unknown")
                     .trimmingCharacters(in: CharacterSet.controlCharacters)  // remove last new line
@@ -144,29 +155,19 @@ public extension Process {
                 //     currentAppender.performLog(logMessage, level: .Info, info: LogInfoDictionary())
                 // }
             }
-            processData.stdout.append(data)
-        }
-        standardErrorPipe.fileHandleForReading.readabilityHandler = { (file: FileHandle) in
-#if os(macOS)
-            lock.lock()
-            defer { lock.unlock() }
 #endif
-            let data = file.availableData
-            guard !data.isEmpty
-            else { return }
+        }
+        standardErrorPipe.fileHandleForReading.readabilityHandler = { fileHandle in
+#if os(macOS)
+            let data = processData.append(stderr: fileHandle.availableData)
 
-            // easy peasy in debug mode we will be more verbose with child output
-            // otherwise it will be hidden but accumulated in the processData buffer
             if logger.logLevel == .trace {
-                let logMessage = (String(data: data, encoding: .utf8) ?? "unknown")
-                    .trimmingCharacters(in: CharacterSet.controlCharacters)  // remove last new line
-                
-                logger.trace("stderr: \(logMessage)")
+                logger.trace("stderr: \(data.logMessage)")
                 // for currentAppender in logger.appenders {
                 //     currentAppender.performLog(logMessage, level: .Info, info: LogInfoDictionary())
                 // }
             }
-            processData.stderr.append(data)
+#endif
         }
 
         self.terminationHandler = { process in
@@ -279,6 +280,16 @@ public extension Process {
             .processData(timeOut: timeOutInSeconds)
     }
 
+}
+
+fileprivate extension Data {
+    /**
+     Returns is as string for logging, remove last new line
+     */
+    var logMessage: String {
+        (String(data: self, encoding: .utf8) ?? "unknown")
+            .trimmingCharacters(in: CharacterSet.controlCharacters)
+    }
 }
 
 #endif

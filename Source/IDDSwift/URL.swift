@@ -235,6 +235,15 @@ public extension URL {
         return self._volumeUUID(mountedVolumes)
     }
     
+    /**
+     This will return the absolute volume URL for a given url
+     We will do this by crawling down a given url until the volumeUUID changes
+     ### Example
+     - /Users/kdeda -> /
+     - /Users/kdeda/Desktop/Packages -> /
+     - /Volumes/TimeMachine -> /Volumes/TimeMachine
+     - /Library/Developer/CoreSimulator/Volumes/iOS_21A328 -> /Library/Developer/CoreSimulator/Volumes/iOS_21A328
+     */
     var volumeURL: URL {
         var realURL = self
         let mountedVolumes = Set(FileManager.default.mountedVolumes(true))
@@ -243,6 +252,7 @@ public extension URL {
         
         repeat {
             if realURL.isVolume && volumeUUID == realURL._volumeUUID(mountedVolumes) {
+                URL.logger.debug("rv: '\(realURL.path)' from: '\(self.path)'")
                 return realURL
             } else if !mountedVolumes.contains(realURL.path) {
                 realURL = realURL.deletingLastPathComponent()

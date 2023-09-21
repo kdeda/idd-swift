@@ -149,19 +149,17 @@ public extension FileManager {
 
 #if os(macOS)
     @objc private func didMountNotification(_ notification: NSNotification) {
-        Self.lock.lock()
-        defer { Self.lock.unlock() }
-
-        Log4swift[Self.self].info("notification: '\(notification.userInfo ?? [AnyHashable: Any]())'")
-        Self.mountedVolumesLastFetchDate = Date.distantPast
+        Self.lock.withLock {
+            Log4swift[Self.self].info("notification: '\(notification.userInfo ?? [AnyHashable: Any]())'")
+            Self.mountedVolumesLastFetchDate = Date.distantPast
+        }
     }
     
     @objc private func didUnmountNotification(_ notification: NSNotification) {
-        Self.lock.lock()
-        defer { Self.lock.unlock() }
-
-        Log4swift[Self.self].info("notification: '\(notification.userInfo ?? [AnyHashable: Any]())'")
-        Self.mountedVolumesLastFetchDate = Date.distantPast
+        Self.lock.withLock {
+            Log4swift[Self.self].info("notification: '\(notification.userInfo ?? [AnyHashable: Any]())'")
+            Self.mountedVolumesLastFetchDate = Date.distantPast
+        }
     }
 #endif
 
@@ -173,44 +171,44 @@ public extension FileManager {
      */
     func mountedVolumes(_ refetch: Bool) -> [String] {
 #if os(macOS)
-        Self.lock.lock()
-        defer { Self.lock.unlock() }
+        Self.lock.withLock {
+            func fetchMountedVolumes() -> [String] {
+                var statfs: UnsafeMutablePointer<statfs>?
+                let count = Int(getmntinfo(&statfs, 0))
 
-        func fetchMountedVolumes() -> [String] {
-            var statfs: UnsafeMutablePointer<statfs>?
-            let count = Int(getmntinfo(&statfs, 0))
-
-            func charPointerToString(_ pointer: UnsafePointer<Int8>) -> String {
-               return String(cString: UnsafeRawPointer(pointer).assumingMemoryBound(to: CChar.self))
-            }
-
-            if let volumesArray = statfs, count > 0 {
-                return (0..<count).map { (index) -> String in
-                    var volume = volumesArray[index]
-                    let mountTo = charPointerToString(&volume.f_mntonname.0)
-                    //    let mountFrom = charPointerToString(&volume.f_mntfromname.0)
-                    //    let fileSystemType = charPointerToString(&volume.f_fstypename.0)
-                    return mountTo
+                func charPointerToString(_ pointer: UnsafePointer<Int8>) -> String {
+                    return String(cString: UnsafeRawPointer(pointer).assumingMemoryBound(to: CChar.self))
                 }
-                .sorted(by: >)
-            }
-            return [String]()
-        }
 
-        // when refetch is true
-        // do not really fetch unless a second has elapsed since last fetch
-        //
-        guard refetch,
-              -Self.mountedVolumesLastFetchDate.timeIntervalSinceNow * 1000 > 1000
-        else {
-            // Log4swift[Self.self].info("cache: '\(-Self.mountedVolumesLastFetchDate.timeIntervalSinceNow * 1000)'")
-            return Self.mountedVolumes }
-        
-        // Log4swift[Self.self].info("fetch: '\(-Self.mountedVolumesLastFetchDate.timeIntervalSinceNow * 1000)'")
-        registerForWorkSpaceNotifications()
-        Self.mountedVolumes = fetchMountedVolumes()
-        Self.mountedVolumesLastFetchDate = Date()
-        return Self.mountedVolumes
+                if let volumesArray = statfs, count > 0 {
+                    return (0..<count).map { (index) -> String in
+                        var volume = volumesArray[index]
+                        let mountTo = charPointerToString(&volume.f_mntonname.0)
+                        //    let mountFrom = charPointerToString(&volume.f_mntfromname.0)
+                        //    let fileSystemType = charPointerToString(&volume.f_fstypename.0)
+                        return mountTo
+                    }
+                    .sorted(by: >)
+                }
+                return [String]()
+            }
+
+            /**
+             Even when refetch is true
+             do not really fetch unless 5 seconds have elapsed since last fetch
+             */
+            guard refetch,
+                  -Self.mountedVolumesLastFetchDate.timeIntervalSinceNow * 1000 > 1000 * 5
+            else {
+                // Log4swift[Self.self].info("cache: '\(-Self.mountedVolumesLastFetchDate.timeIntervalSinceNow * 1000)'")
+                return Self.mountedVolumes }
+
+            // Log4swift[Self.self].info("fetch: '\(-Self.mountedVolumesLastFetchDate.timeIntervalSinceNow * 1000)'")
+            registerForWorkSpaceNotifications()
+            Self.mountedVolumes = fetchMountedVolumes()
+            Self.mountedVolumesLastFetchDate = Date()
+            return Self.mountedVolumes
+        }
 #else
         return []
 #endif
@@ -218,9 +216,9 @@ public extension FileManager {
     
     func isMountedVolume(_ basePath: String) -> Bool {
 #if os(macOS)
-        Self.lock.lock()
-        defer { Self.lock.unlock() }
-        return Self.mountedVolumes.firstIndex(where: { $0 == basePath}) != nil
+        Self.lock.withLock {
+            return Self.mountedVolumes.firstIndex(where: { $0 == basePath}) != nil
+        }
 #else
         return false
 #endif

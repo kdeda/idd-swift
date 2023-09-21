@@ -47,44 +47,4 @@ public extension FileManager {
     func volumeRootPath(_ filePath: String) -> String {
         return pathsFromVolumeRoot(filePath).last ?? ""
     }
-    
-//
-//    /*
-//     * '/Applications/Adobe InCopy CC 2015/Adobe InCopy CC 2015.app',
-//     * '/Volumes/ElCap SM951/Applications/Adobe InCopy CC 2015/Adobe InCopy CC 2015.app',
-//     * are the same
-//     * '/' == '/Volumes/ElCap SM951'
-//     */
-//    - (NSString*)mountedPathForRootVolume:(BOOL)refetch {
-//        @synchronized(self) {
-//            if (refetch) {
-//                _mountedPathForRootVolume = nil;
-//            }
-//            if (!_mountedPathForRootVolume) {
-//                NSError*  error = nil;
-//                NSArray*  mountedPaths = [self contentsOfDirectoryAtPath:@"/Volumes" error:nil];
-//                NSDictionary*  attributes = [self attributesOfItemAtPath:@"/" error:&error];
-//                NSInteger  fileSystemNumber = [[attributes valueForKey:NSFileSystemNumber] integerValue];
-//
-//                for (NSString* mountedName in mountedPaths) {
-//                    NSString*  mountedPath = [@"/Volumes" stringByAppendingPathComponent:mountedName];
-//                    BOOL  isDir = NO;
-//
-//                    if ([self fileExistsAtPath:mountedPath isDirectory:&isDir] && isDir) {
-//                        NSDictionary*  attributes = [self attributesOfItemAtPath:mountedPath error:&error];
-//                        NSInteger  fileSystemNumber_ = [[attributes valueForKey:NSFileSystemNumber] integerValue];
-//
-//                        if (fileSystemNumber == fileSystemNumber_) {
-//                            _mountedPathForRootVolume = [mountedPath copy];
-//                            break;
-//                        }
-//                    }
-//                }
-//                if (!_mountedPathForRootVolume) {
-//                    _mountedPathForRootVolume = @"/";
-//                }
-//            }
-//            return _mountedPathForRootVolume;
-//        }
-//    }
 }
