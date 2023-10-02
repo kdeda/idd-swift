@@ -17,7 +17,14 @@ public extension Process {
         case fullDiskAccess
     }
     
-    struct ProcessData {
+    /**
+     We have to make this a class since we will evenutally mutate the innards of
+     and instance of this during append(stdout:) or append(stderr:) calls
+
+     If this was a var swift will see the mutating func as mutating the declared
+     var and that is not lock protected ...
+     */
+    final class ProcessData {
         private var stdout = Data()
         private var stderr = Data()
         private let lock = NSRecursiveLock()
@@ -37,7 +44,7 @@ public extension Process {
         }
 
         @discardableResult
-        public mutating func append(stdout data: Data) -> Data {
+        public func append(stdout data: Data) -> Data {
             lock.withLock {
                 if !data.isEmpty {
                     stdout.append(data)
@@ -47,7 +54,7 @@ public extension Process {
         }
 
         @discardableResult
-        public mutating func append(stderr data: Data) -> Data {
+        public func append(stderr data: Data) -> Data {
             lock.withLock {
                 if !data.isEmpty {
                     stderr.append(data)
@@ -110,7 +117,7 @@ public extension Process {
         else { throw ProcessError.commandNotFound(command) }
 
         let semaphore = DispatchSemaphore(value: 0)
-        var processData = ProcessData()
+        let processData = ProcessData()
         let standardOutputPipe = Pipe()
         let standardErrorPipe = Pipe()
 
