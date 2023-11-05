@@ -61,13 +61,19 @@ public extension FileManager {
             
                 --------------------------------
                 Please enable Full Disk Access for this executable
+
+                1) To avoid problems, make sure your binary is signed
+                /usr/bin/codesign --verify --verbose \(executable.path)
+
+                2) If NOT, force sign it
+                /usr/bin/codesign --verbose --force --timestamp --options=runtime --strict --sign 'Developer ID Application: ID-DESIGN INC. (ME637H7ZM9)' \(executable.path)
+
+                3) Add it to System Settings
                 open x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles
                 open \(executable.deletingLastPathComponent().path)
                 and add  \(executable.lastPathComponent)  to the list of allowed binaries"
             
-                to avoid problems, make sure the binary is signed
-            
-                /usr/bin/codesign --verbose --force --timestamp --options=runtime --strict --sign 'Developer ID Application: ID-DESIGN INC. (ME637H7ZM9)' \(executable.path)
+                4) Finally for some command line tools make sure Terminal is on the Full Disk Access list
                 ----
             
             """

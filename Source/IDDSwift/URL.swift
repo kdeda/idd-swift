@@ -68,10 +68,17 @@ public extension URL {
             }
             
             if !realURL.isReadable {
-                // we should not get here
-                // unless even the mounted volumes are not readable
-                //
+                /**
+                 we should not get here
+                 unless the mounted volumes are not readable
+                 or we do not have proper full disk access
+                 */
                 URL.logger.error("unreadable volume: '\(self.path)'")
+                /**
+                 Make sure to double check the full disk access.
+                 In very rare cases apple's FDA gerts confused, a reboot or a slight click on the checkbutton helps
+                 */
+                FileManager.default.hasFullDiskAccessTips()
             }
         }
         

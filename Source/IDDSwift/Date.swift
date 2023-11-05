@@ -43,9 +43,13 @@ public extension Date {
     }
 
     var stringWithDefaultFormat: String {
-        Date.defaultFormatter.string(from: self)
+        stringWithDateFormatter(Date.defaultFormatter)
     }
     
+    func stringWithDateFormatter(_ dateFormatter: DateFormatter) -> String {
+        dateFormatter.string(from: self)
+    }
+
     // if numberOfDays is positive return date is us but numberOfDays in the future
     // if numberOfDays is negative return date is us but numberOfDays in the past
     //
