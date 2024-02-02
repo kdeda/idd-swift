@@ -45,7 +45,7 @@ public extension FileManager {
      ```
      guard FileManager.default.hasFullDiskAccess
      else {
-         FileManager.default.fullDiskAccessTips()
+         FileManager.default.hasFullDiskAccessTips()
          return
      }
      ```

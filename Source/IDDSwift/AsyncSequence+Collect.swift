@@ -19,6 +19,7 @@ public extension AsyncSequence where Element: Equatable {
     func collect(waitForMilliseconds: Int = 0) -> AsyncStream<[Element]> {
         AsyncStream { continuation in
             let buffer = ArrayActor<Element>()
+            let startDate = Date()
 
             Log4swift[Self.self].info("waitForMilliseconds: '\(waitForMilliseconds) ms'")
             // Receive data updates in this task
@@ -49,6 +50,11 @@ public extension AsyncSequence where Element: Equatable {
                     try? await Task.sleep(nanoseconds: NSEC_PER_MSEC * UInt64(waitForMilliseconds))
                     let batch = await buffer.popAll()
                     if !batch.isEmpty {
+                        // TODO: kdeda
+                        // we do skip some ticks here, it means we spend a decent time without anything to report
+                        // we should not
+                        let elapsed = startDate.elapsedTimeInMilliseconds / Double(waitForMilliseconds)
+                        Log4swift[Self.self].info("batch: '\(Int(elapsed)) tick'")
                         continuation.yield(batch)
                     }
                 }
