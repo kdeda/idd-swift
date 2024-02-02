@@ -19,6 +19,7 @@ public extension AsyncSequence where Element: Equatable {
     func collect(waitForMilliseconds: Int = 0) -> AsyncStream<[Element]> {
         AsyncStream { continuation in
             let buffer = ArrayActor<Element>()
+            let startDate = Date()
 
             Log4swift[Self.self].info("waitForMilliseconds: '\(waitForMilliseconds) ms'")
             // Receive data updates in this task
@@ -48,6 +49,14 @@ public extension AsyncSequence where Element: Equatable {
                 while !Task.isCancelled {
                     try? await Task.sleep(nanoseconds: NSEC_PER_MSEC * UInt64(waitForMilliseconds))
                     let batch = await buffer.popAll()
+                    
+                    // TODO: kdeda
+                    // it's all good
+                    // if we spend a decent more than waitForMilliseconds not being able to find any nodes
+                    // this will skip
+                    // let elapsed = startDate.elapsedTimeInMilliseconds / Double(waitForMilliseconds)
+                    // Log4swift[Self.self].info("batch.count: \(batch.count): '\(Int(elapsed)) tick'")
+
                     if !batch.isEmpty {
                         continuation.yield(batch)
                     }
