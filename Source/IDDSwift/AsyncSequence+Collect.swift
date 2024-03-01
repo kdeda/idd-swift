@@ -21,7 +21,7 @@ public extension AsyncSequence where Element: Equatable {
             let buffer = ArrayActor<Element>()
             let startDate = Date()
 
-            Log4swift[Self.self].info("waitForMilliseconds: '\(waitForMilliseconds) ms'")
+            // Log4swift[Self.self].info("waitForMilliseconds: '\(waitForMilliseconds) ms'")
             // Receive data updates in this task
             let task1 = Task {
                 for try await element in self {
@@ -64,7 +64,7 @@ public extension AsyncSequence where Element: Equatable {
             }
 
             continuation.onTermination = { _ in
-                Log4swift[Self.self].info("terminated ...")
+                // Log4swift[Self.self].info("terminated ...")
                 task1.cancel()
                 task2.cancel()
             }

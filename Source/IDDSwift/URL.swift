@@ -769,7 +769,7 @@ public extension URL {
             fileHandle.seekToEndOfFile()
             fileHandle.write(data)
             if startDate.elapsedTimeInMilliseconds > 10.0 {
-                URL.logger.info("appended: '\(data.count) bytes' to: '\(self.path)' in: '\(startDate.elapsedTime) ms'")
+                URL.logger.info("appended: '\(data.count) bytes' to: '\(self.path)' completed in: '\(startDate.elapsedTime) ms'")
             }
         } catch {
             URL.logger.error("error: '\(error.localizedDescription)'")
