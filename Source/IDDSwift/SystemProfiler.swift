@@ -14,7 +14,7 @@ import Log4swift
 public struct SystemProfiler {
     public static let shared = SystemProfiler()
     public static let profilerURL = URL(fileURLWithPath: "/usr/sbin/system_profiler")
-    public static let logger = Log4swift["SystemProfiler"]
+    public static let logger = Log4swift[Self.self]
 
     public var storageData: [SystemProfiler.StorageData] {
         let xml = Process.stdString(taskURL: SystemProfiler.profilerURL, arguments: ["-xml", "SPStorageDataType"], timeOut: 5.0)

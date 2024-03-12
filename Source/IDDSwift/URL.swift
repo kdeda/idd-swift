@@ -16,7 +16,7 @@ import FoundationNetworking
 #endif
 
 public extension URL {
-    static let logger = Log4swift["URL"]
+    static let logger = Log4swift[Self.self]
 
     /**
      A URL identifying the user's home directory, typically in `/Users`.
