@@ -19,7 +19,7 @@ public extension AsyncSequence where Element: Equatable {
     func collect(waitForMilliseconds: Int = 0) -> AsyncStream<[Element]> {
         AsyncStream { continuation in
             let buffer = ArrayActor<Element>()
-            let startDate = Date()
+            // let startDate = Date()
 
             // Log4swift[Self.self].info("waitForMilliseconds: '\(waitForMilliseconds) ms'")
             // Receive data updates in this task

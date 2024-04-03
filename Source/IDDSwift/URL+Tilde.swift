@@ -6,6 +6,8 @@
 //  Copyright (C) 1997-2023 id-design, inc. All rights reserved.
 //
 
+#if os(macOS)
+
 import Foundation
 
 public extension URL {
@@ -45,3 +47,5 @@ public extension URL {
         return URL.init(fileURLWithPath: components.joined(separator: "/"))
     }
 }
+
+#endif
