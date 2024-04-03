@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/kdeda/idd-log4-swift.git",
       "state" : {
-        "revision" : "0db2a4cf81631bdff5dbdee445562686e6dab750",
-        "version" : "2.0.2"
+        "revision" : "08a9a93dc71c3c7aa365c3670fe29ad01f858e86",
+        "version" : "2.0.8"
       }
     },
     {

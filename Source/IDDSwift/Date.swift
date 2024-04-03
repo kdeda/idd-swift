@@ -9,7 +9,14 @@
 import Foundation
 
 public extension Date {
-    static let defaultFormatter = DateFormatter.init(withFormatString: "yyyy-MM-dd HH:mm:ss.SSS Z", andPOSIXLocale: true)
+    /**
+     Be ware this is not UTC, which might be perfectly fine.
+     Its default timeZone is the device’s local time zone.
+     */
+    static let defaultFormatter: DateFormatter = {
+        let rv = DateFormatter.init(withFormatString: "yyyy-MM-dd HH:mm:ss.SSS Z", andPOSIXLocale: true)
+        return rv
+    }()
 
     static func elapsedTime(for closure: (()-> Swift.Void)) -> String {
         let startDate = Date.init()
@@ -20,13 +27,13 @@ public extension Date {
     static func elapsedTime(from elapsedTimeInMilliseconds: Double) -> String {
         elapsedTimeInMilliseconds.with3Digits
     }
-    
+
     // positive number if some time has elapsed since now
     //
     var elapsedTimeInMilliseconds: Double {
         -self.timeIntervalSinceNow * 1000.0
     }
-    
+
     // positive number if some time has elapsed since now
     //
     var elapsedTimeInSeconds: Double {
@@ -45,7 +52,7 @@ public extension Date {
     var stringWithDefaultFormat: String {
         stringWithDateFormatter(Date.defaultFormatter)
     }
-    
+
     func stringWithDateFormatter(_ dateFormatter: DateFormatter) -> String {
         dateFormatter.string(from: self)
     }

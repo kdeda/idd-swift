@@ -104,7 +104,7 @@ public extension Bundle {
         public let id: String
         public let name: String
         public let shortVersion: String
-        public let buildNumber: String
+        public let buildNumber: Int
         public let startDate: String
         public let creationDate: String
         public let creationDateLocalized: String
@@ -119,7 +119,7 @@ public extension Bundle {
              */
             name = Bundle.main[.localizedInfo, "CFBundleName", Bundle.main[.info, "CFBundleName", "myapp"]]
             shortVersion = Bundle.main[.info, "CFBundleShortVersionString", "1.0.1"]
-            buildNumber = Bundle.main[.info, "CFBundleVersion", "1010"]
+            buildNumber = Int(Bundle.main[.info, "CFBundleVersion", "1010"]) ?? 1010
             startDate = Date.init().stringWithDefaultFormat
             let creationDate_ = Bundle.main.executableURL?.creationDate ?? Date.distantPast
             creationDate = creationDate_.stringWithDefaultFormat
