@@ -9,7 +9,7 @@
 import Foundation
 import Log4swift
 
-public extension AsyncSequence where Element: Equatable {
+public extension AsyncSequence {
     /// Collect elements from an async sequence.
     ///
     /// - Parameter waitForMilliseconds: The number of milliseconds to wait before emitting.

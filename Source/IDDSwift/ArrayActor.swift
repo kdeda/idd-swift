@@ -8,7 +8,7 @@
 
 import Foundation
 
-public final actor ArrayActor<Value: Sendable> where Value: Equatable {
+public final actor ArrayActor<Value: Sendable> {
     public private(set) var value = [Value]()
 
     public init(reserveCapacity: Int = 10_000) {
@@ -28,9 +28,9 @@ public final actor ArrayActor<Value: Sendable> where Value: Equatable {
         value.append(contentsOf: newValues)
     }
 
-    public func remove(_ existing: Value) {
-        value.removeAll(where: { $0 == existing })
-    }
+    //    public func remove(_ existing: Value) {
+    //        value.removeAll(where: { $0 == existing })
+    //    }
 
     /**
      Pop all and return.
