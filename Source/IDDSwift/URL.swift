@@ -249,6 +249,7 @@ public extension URL {
      - /Users/kdeda -> /
      - /Users/kdeda/Desktop/Packages -> /
      - /Volumes/TimeMachine -> /Volumes/TimeMachine
+     - /Volumes/.timemachine/113CD8B8-C3B7-4D6A-B025-23A39F4E5C99/2024-04-25-015502.backup -> /Volumes/TimeMachine
      - /Library/Developer/CoreSimulator/Volumes/iOS_21A328 -> /Library/Developer/CoreSimulator/Volumes/iOS_21A328
      */
     var volumeURL: URL {
