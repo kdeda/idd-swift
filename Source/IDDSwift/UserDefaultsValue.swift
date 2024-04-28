@@ -19,13 +19,12 @@ import Log4swift
  It seems that @propertyWrapper do break TCA, March 2023
  */
 @propertyWrapper
-public struct UserDefaultsValue<Value>: Equatable where Value: Equatable, Value: Codable {
+public struct UserDefaultsValue<Value>: Equatable, Sendable where Value: Equatable, Value: Codable, Value: Sendable {
     let key: String
     let defaultValue: Value
     /// this maps to Bundle.main.bundleIdentifier, ie: 'com.id-design.v8.WhatSize'
     /// defaults read ~/Library/Preferences/com.id-design.v8.whatsize.plist
-    var storage: UserDefaults = .standard
-
+    /// 
     @available(macOS, deprecated: 1.3.7, message: "Use 'init(_ defaultValue: Value, forKey: String)', instead.")
     public init(key: String, defaultValue: Value) {
         self.key = key
@@ -50,8 +49,8 @@ public struct UserDefaultsValue<Value>: Equatable where Value: Equatable, Value:
         get {
             // Log4swift[Self.self].info("loading: '\(self.key)'")
             let value: Value? = {
-                guard let storedValue = storage.object(forKey: key.jsonKey) as? String
-                else { return storage.object(forKey: key) as? Value }
+                guard let storedValue = UserDefaults.standard.object(forKey: key.jsonKey) as? String
+                else { return UserDefaults.standard.object(forKey: key) as? Value }
                 let encoder = JSONDecoder()
                 
                 encoder.dateDecodingStrategy = .iso8601
@@ -78,8 +77,8 @@ public struct UserDefaultsValue<Value>: Equatable where Value: Equatable, Value:
                 let data = try encoder.encode(newValue)
                 let storedValue = String(data: data, encoding: .utf8) ?? ""
                 
-                storage.set(storedValue, forKey: key.jsonKey)
-                storage.removeObject(forKey: key)
+                UserDefaults.standard.set(storedValue, forKey: key.jsonKey)
+                UserDefaults.standard.removeObject(forKey: key)
                 // Log4swift[Self.self].info("stored \(self.key): '\(storedValue)'")
             } catch {
                 Log4swift[Self.self].error("error: '\(error.localizedDescription)'")

@@ -26,7 +26,8 @@ public extension URL {
      http://zpasternack.org/accessing-the-real-home-folder-from-a-sandboxed-app/
      http://stackoverflow.com/questions/12153504/accessing-the-desktop-in-a-sandboxed-app
      */
-    static var home: URL = {
+    static let home: URL = {
+#if os(macOS)
         if Global.isAppStoreBuild {
             if let home = getpwuid(getuid()), let homePtr = home.pointee.pw_dir {
                 let homePath = FileManager.default.string(withFileSystemRepresentation: homePtr, length: Int(strlen(homePtr)))
@@ -34,7 +35,7 @@ public extension URL {
                 return URL.init(fileURLWithPath: homePath)
             }
         }
-        
+#endif        
         return URL.init(fileURLWithPath: NSHomeDirectory())
     }()
     
@@ -249,6 +250,7 @@ public extension URL {
      - /Users/kdeda -> /
      - /Users/kdeda/Desktop/Packages -> /
      - /Volumes/TimeMachine -> /Volumes/TimeMachine
+     - /Volumes/.timemachine/113CD8B8-C3B7-4D6A-B025-23A39F4E5C99/2024-04-25-015502.backup -> /Volumes/TimeMachine
      - /Library/Developer/CoreSimulator/Volumes/iOS_21A328 -> /Library/Developer/CoreSimulator/Volumes/iOS_21A328
      */
     var volumeURL: URL {
@@ -278,7 +280,17 @@ public extension URL {
         return (try? self.resourceValues(forKeys: [.volumeTotalCapacityKey]))?
             .volumeTotalCapacity ?? -1
     }
-    
+
+    var volumeTotalCapacity: Int {
+        return (try? self.resourceValues(forKeys: [.volumeTotalCapacityKey]))?
+            .volumeTotalCapacity ?? -1
+    }
+
+    var volumeAvailableCapacity: Int {
+        return (try? self.resourceValues(forKeys: [.volumeAvailableCapacityKey]))?
+            .volumeAvailableCapacity ?? -1
+    }
+
     var volumeSupportsHardLinks: Bool {
         return (try? self.resourceValues(forKeys: [.volumeSupportsHardLinksKey]))?
             .volumeSupportsHardLinks ?? false
@@ -368,8 +380,12 @@ public extension URL {
         var fileStat : stat = stat()
         
         if stat((self.path as NSString).fileSystemRepresentation, &fileStat) != 0 {
+#if os(macOS)
             let errorString = String(utf8String: strerror(errno)) ?? "Unknown error code"
-            
+#else
+            let errorString = "Error: '\(errno)'"
+#endif
+
             URL.logger.error("error: '\(errorString)' filePath: '\(self.path)'")
         } else {
 #if os(macOS)
@@ -568,7 +584,8 @@ public extension URL {
      */
     var timeMachineSliceSize: Int64 {
         var rv: Int64 = 0
-        
+
+#if os(macOS)
         do {
             if !self.fileExist {
                 // we will get here if we run in user space
@@ -600,6 +617,7 @@ public extension URL {
         } catch {
             URL.logger.error("error: '\(error.localizedDescription)'")
         }
+#endif
         return rv
     }
     
@@ -790,13 +808,13 @@ public extension URL {
 #endif
     }
 }
-
-extension URL: Identifiable {
-     public var id: String {
-        self.path
-    }
-}
-
+//
+//extension URL: Identifiable {
+//     public var id: String {
+//        self.path
+//    }
+//}
+//
 // MARK: - Array[URL] -
 public extension Array where Element == URL {
     

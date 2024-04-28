@@ -33,6 +33,8 @@ public extension Data {
     }
 }
 
+#if os(macOS)
+
 public extension URL {
      var sha256: String {
         guard let handle = try? FileHandle(forReadingFrom: self)
@@ -61,3 +63,4 @@ public extension URL {
         return tokens.joined(separator: "").uppercased()
     }
 }
+#endif

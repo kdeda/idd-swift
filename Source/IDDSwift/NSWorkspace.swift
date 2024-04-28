@@ -159,15 +159,6 @@ public extension NSWorkspace {
 }
 
 public extension Process {
-    static func killProcess(pid: Int) {
-        guard pid > 0
-        else {
-            Log4swift[Self.self].error("pid: '\(pid)' should be a positive number")
-            return
-        }
-        _ = Self.stdString(taskURL: URL(fileURLWithPath: "/bin/kill"), arguments: ["-9", "\(pid)"])
-    }
-    
     static func killProcess(bundleIdentifiers: [String]) {
         bundleIdentifiers.forEach(Self.killProcess(bundleIdentifier:))
     }

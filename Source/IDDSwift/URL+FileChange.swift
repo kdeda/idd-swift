@@ -6,6 +6,8 @@
 //  Copyright (C) 1997-2024 id-design, inc. All rights reserved.
 //
 
+#if os(macOS)
+
 import Foundation
 
 public extension URL {
@@ -129,3 +131,5 @@ fileprivate final class FileChangeListener: NSObject {
     }
 
 }
+
+#endif

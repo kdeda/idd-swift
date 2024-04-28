@@ -1,4 +1,4 @@
-// swift-tools-version:5.7
+// swift-tools-version:5.9
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -16,9 +16,10 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/kdeda/idd-log4-swift.git", "2.0.8" ..< "3.0.0"),
+        // .package(name: "idd-log4-swift", path: "../idd-log4-swift"),
+        .package(url: "https://github.com/kdeda/idd-log4-swift.git", "2.1.7" ..< "3.0.0"),
         .package(url: "https://github.com/kdeda/idd-zstd-swift.git", "2.0.1" ..< "3.0.0"),
-        .package(url: "https://github.com/apple/swift-crypto.git", from: "2.2.4")
+        .package(url: "https://github.com/apple/swift-crypto.git", from: "3.7.0")
     ],
     targets: [
         .target(
