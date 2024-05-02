@@ -44,12 +44,16 @@ public extension Process {
             /// will stream the stdout.
             standardOutputPipe.fileHandleForReading.readabilityHandler = { (file: FileHandle) in
                 let data = file.availableData
-                continuation.yield(.stdout(data))
+                if !data.isEmpty {
+                    continuation.yield(.stdout(data))
+                }
             }
             /// will stream the stderr.
             standardErrorPipe.fileHandleForReading.readabilityHandler = { (file: FileHandle) in
                 let data = file.availableData
-                continuation.yield(.stderr(data))
+                if !data.isEmpty {
+                    continuation.yield(.stderr(data))
+                }
             }
             
             process.terminationHandler = { [weak self] process in
@@ -131,11 +135,10 @@ public extension Process {
                         
                         // debug
                         switch reason {
-                        case .exit: Log4swift["IDDSwift.Process"].info("terminationReason: 'exit \(reason.rawValue)'")
-                        case .uncaughtSignal: Log4swift["IDDSwift.Process"].info("terminationReason: 'uncaughtSignal \(reason.rawValue)'")
-                        @unknown default: Log4swift["IDDSwift.Process"].info("terminationReason: 'unknown \(reason.rawValue)'")
+                        case .exit:           Log4swift["IDDSwift.Process"].debug("terminationReason: 'exit \(reason.rawValue)'")
+                        case .uncaughtSignal: Log4swift["IDDSwift.Process"].debug("terminationReason: 'uncaughtSignal \(reason.rawValue)'")
+                        @unknown default:     Log4swift["IDDSwift.Process"].debug("terminationReason: 'unknown \(reason.rawValue)'")
                         }
-                        
                         continuation.yield(.terminated(reason))
                         continuation.finish()
                     }

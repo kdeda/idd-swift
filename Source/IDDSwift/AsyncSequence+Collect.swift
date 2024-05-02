@@ -6,6 +6,7 @@
 //  Copyright (C) 1997-2024 id-design, inc. All rights reserved.
 //
 
+#if os(macOS)
 import Foundation
 import Log4swift
 
@@ -38,7 +39,7 @@ public extension AsyncSequence {
 
                     // not really sure whay i had to inject a sleep here :-)
                     // maybe because we are going to terminate this stream
-                    // and with it bother task1, task2 defined here
+                    // and with it both task1, task2 defined here
                     try? await Task.sleep(nanoseconds: NSEC_PER_MSEC * UInt64(50))
                 }
                 continuation.finish()
@@ -49,16 +50,14 @@ public extension AsyncSequence {
                 while !Task.isCancelled {
                     try? await Task.sleep(nanoseconds: NSEC_PER_MSEC * UInt64(waitForMilliseconds))
                     let batch = await buffer.popAll()
-                    
-                    // TODO: kdeda
-                    // it's all good
-                    // if we spend a decent more than waitForMilliseconds not being able to find any nodes
-                    // this will skip
-                    // let elapsed = startDate.elapsedTimeInMilliseconds / Double(waitForMilliseconds)
-                    // Log4swift[Self.self].info("batch.count: \(batch.count): '\(Int(elapsed)) tick'")
 
                     if !batch.isEmpty {
                         continuation.yield(batch)
+                        //  } else {
+                        //      // If we do not produce anything during the waitForMilliseconds
+                        //      // We will not emitt
+                        //      let elapsed = startDate.elapsedTimeInMilliseconds / Double(waitForMilliseconds)
+                        //      Log4swift[Self.self].info("batch.count: \(batch.count): '\(Int(elapsed)) tick'")
                     }
                 }
             }
@@ -71,3 +70,4 @@ public extension AsyncSequence {
         }
     }
 }
+#endif

@@ -6,6 +6,9 @@
 //  Copyright (C) 1997-2024 id-design, inc. All rights reserved.
 //
 
+#if os(Linux)
+#else
+
 import Foundation
 
 public extension URL {
@@ -129,3 +132,5 @@ fileprivate final class FileChangeListener: NSObject {
     }
 
 }
+
+#endif

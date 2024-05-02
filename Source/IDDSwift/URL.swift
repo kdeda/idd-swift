@@ -26,7 +26,7 @@ public extension URL {
      http://zpasternack.org/accessing-the-real-home-folder-from-a-sandboxed-app/
      http://stackoverflow.com/questions/12153504/accessing-the-desktop-in-a-sandboxed-app
      */
-    static var home: URL = {
+    static let home: URL = {
         if Global.isAppStoreBuild {
             if let home = getpwuid(getuid()), let homePtr = home.pointee.pw_dir {
                 let homePath = FileManager.default.string(withFileSystemRepresentation: homePtr, length: Int(strlen(homePtr)))
@@ -279,7 +279,17 @@ public extension URL {
         return (try? self.resourceValues(forKeys: [.volumeTotalCapacityKey]))?
             .volumeTotalCapacity ?? -1
     }
-    
+
+    var volumeTotalCapacity: Int {
+        return (try? self.resourceValues(forKeys: [.volumeTotalCapacityKey]))?
+            .volumeTotalCapacity ?? -1
+    }
+
+    var volumeAvailableCapacity: Int {
+        return (try? self.resourceValues(forKeys: [.volumeAvailableCapacityKey]))?
+            .volumeAvailableCapacity ?? -1
+    }
+
     var volumeSupportsHardLinks: Bool {
         return (try? self.resourceValues(forKeys: [.volumeSupportsHardLinksKey]))?
             .volumeSupportsHardLinks ?? false
