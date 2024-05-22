@@ -279,7 +279,17 @@ public extension URL {
         return (try? self.resourceValues(forKeys: [.volumeTotalCapacityKey]))?
             .volumeTotalCapacity ?? -1
     }
-    
+
+    var volumeTotalCapacity: Int {
+        return (try? self.resourceValues(forKeys: [.volumeTotalCapacityKey]))?
+            .volumeTotalCapacity ?? -1
+    }
+
+    var volumeAvailableCapacity: Int {
+        return (try? self.resourceValues(forKeys: [.volumeAvailableCapacityKey]))?
+            .volumeAvailableCapacity ?? -1
+    }
+
     var volumeSupportsHardLinks: Bool {
         return (try? self.resourceValues(forKeys: [.volumeSupportsHardLinksKey]))?
             .volumeSupportsHardLinks ?? false
