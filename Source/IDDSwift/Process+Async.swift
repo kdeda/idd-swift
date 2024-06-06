@@ -44,12 +44,16 @@ public extension Process {
             /// will stream the stdout.
             standardOutputPipe.fileHandleForReading.readabilityHandler = { (file: FileHandle) in
                 let data = file.availableData
-                continuation.yield(.stdout(data))
+                if !data.isEmpty {
+                    continuation.yield(.stdout(data))
+                }
             }
             /// will stream the stderr.
             standardErrorPipe.fileHandleForReading.readabilityHandler = { (file: FileHandle) in
                 let data = file.availableData
-                continuation.yield(.stderr(data))
+                if !data.isEmpty {
+                    continuation.yield(.stderr(data))
+                }
             }
             
             process.terminationHandler = { [weak self] process in
