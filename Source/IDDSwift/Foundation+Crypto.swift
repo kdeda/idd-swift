@@ -33,8 +33,8 @@ public extension Data {
     }
 }
 
-#if os(Linux)
-#else
+#if os(macOS)
+
 public extension URL {
      var sha256: String {
         guard let handle = try? FileHandle(forReadingFrom: self)

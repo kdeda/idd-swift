@@ -40,7 +40,7 @@ public extension AsyncSequence {
                     // not really sure whay i had to inject a sleep here :-)
                     // maybe because we are going to terminate this stream
                     // and with it both task1, task2 defined here
-                    try? await Task.sleep(nanoseconds: NSEC_PER_MSEC * UInt64(50))
+                    try? await Task.sleep(nanoseconds: .nanoseconds(milliseconds: 50))
                 }
                 continuation.finish()
             }
@@ -48,7 +48,7 @@ public extension AsyncSequence {
             // re-emit upstream
             let task2 = Task {
                 while !Task.isCancelled {
-                    try? await Task.sleep(nanoseconds: NSEC_PER_MSEC * UInt64(waitForMilliseconds))
+                    try? await Task.sleep(nanoseconds: .nanoseconds(milliseconds: waitForMilliseconds))
                     let batch = await buffer.popAll()
 
                     if !batch.isEmpty {

@@ -27,6 +27,7 @@ public extension URL {
      http://stackoverflow.com/questions/12153504/accessing-the-desktop-in-a-sandboxed-app
      */
     static let home: URL = {
+#if os(macOS)
         if Global.isAppStoreBuild {
             if let home = getpwuid(getuid()), let homePtr = home.pointee.pw_dir {
                 let homePath = FileManager.default.string(withFileSystemRepresentation: homePtr, length: Int(strlen(homePtr)))
@@ -34,7 +35,7 @@ public extension URL {
                 return URL.init(fileURLWithPath: homePath)
             }
         }
-        
+#endif        
         return URL.init(fileURLWithPath: NSHomeDirectory())
     }()
     
@@ -379,8 +380,12 @@ public extension URL {
         var fileStat : stat = stat()
         
         if stat((self.path as NSString).fileSystemRepresentation, &fileStat) != 0 {
+#if os(macOS)
             let errorString = String(utf8String: strerror(errno)) ?? "Unknown error code"
-            
+#else
+            let errorString = "Error: '\(errno)'"
+#endif
+
             URL.logger.error("error: '\(errorString)' filePath: '\(self.path)'")
         } else {
 #if os(macOS)
@@ -579,7 +584,8 @@ public extension URL {
      */
     var timeMachineSliceSize: Int64 {
         var rv: Int64 = 0
-        
+
+#if os(macOS)
         do {
             if !self.fileExist {
                 // we will get here if we run in user space
@@ -611,6 +617,7 @@ public extension URL {
         } catch {
             URL.logger.error("error: '\(error.localizedDescription)'")
         }
+#endif
         return rv
     }
     
@@ -801,13 +808,13 @@ public extension URL {
 #endif
     }
 }
-
-extension URL: Identifiable {
-     public var id: String {
-        self.path
-    }
-}
-
+//
+//extension URL: Identifiable {
+//     public var id: String {
+//        self.path
+//    }
+//}
+//
 // MARK: - Array[URL] -
 public extension Array where Element == URL {
     

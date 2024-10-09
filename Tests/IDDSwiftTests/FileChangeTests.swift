@@ -1,29 +1,31 @@
 import XCTest
 import Log4swift
-import Logging
 import IDDSwift
-// @testable import IDDSwiftTests
 
 final class FileChangeTests: XCTestCase {
-    func testExample() {
-    }
-    
     static var allTests = [
-        ("testExample", testExample),
+        ("testFileChanges", testFileChanges),
     ]
     
+    static var logConfig = false
+
     override func setUp() async throws {
+        guard Self.logConfig
+        else { return }
+
         LoggingSystem.bootstrap { label in
             ConsoleHandler(label: label)
         }
+        Self.logConfig = true
     }
-    
+
     /**
      To terminate in a terminal window, rm filePath
      The filePath will be printed when you run this code
      You can also add to the file in terminal and the added values will print here
      */
     func testFileChanges() async -> Void {
+#if os(macOS)
         let fileURL = URL(fileURLWithPath: NSTemporaryDirectory())
             .appendingPathComponent("AsyncSequence.txt")
         
@@ -38,13 +40,14 @@ final class FileChangeTests: XCTestCase {
         // this is what we will write to the file
         let writtenRows = (0 ..< 10).map { "row \($0)" }
         let wittenData = writtenRows.joined(separator: "")
-
+        
         // write rows onto the file at random times on it's own task
         Task {
             await writtenRows.asyncForEach { row in
                 fileURL.append(data: row.data(using: .utf8) ?? Data())
                 let sleepInBetween = Int.random(in: (10 ..< 1000))
-                try? await Task.sleep(nanoseconds: NSEC_PER_MSEC * UInt64(sleepInBetween))
+
+                try? await Task.sleep(nanoseconds: .nanoseconds(milliseconds: sleepInBetween))
             }
             Log4swift[Self.self].info("wrote: '\(wittenData)'")
             try? FileManager.default.removeItem(at: fileURL)
@@ -62,13 +65,13 @@ final class FileChangeTests: XCTestCase {
                     case let .added(data): partialResult.append(data)
                     case .fileDeleted:
                         Log4swift[Self.self].info("terminated")
-
+                        
                     }
                 }
                 
                 if !bytes.isEmpty {
                     readData.append(bytes)
-
+                    
                     let chunk = String(data: bytes, encoding: .utf8) ?? ""
                     Log4swift[Self.self].info("received:\n\(chunk)")
                 }
@@ -79,8 +82,9 @@ final class FileChangeTests: XCTestCase {
         
         let readData = String(data: await task.value, encoding: .utf8) ?? ""
         Log4swift[Self.self].info("read: '\(readData)'")
-
+        
         // success if the reader got exactly what the writter put in there
         XCTAssertEqual(wittenData, readData)
+#endif
     }
 }

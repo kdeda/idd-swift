@@ -6,8 +6,7 @@
 //  Copyright (C) 1997-2024 id-design, inc. All rights reserved.
 //
 
-#if os(Linux)
-#else
+#if os(macOS)
 
 import Foundation
 

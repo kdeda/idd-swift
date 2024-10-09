@@ -6,7 +6,9 @@
 //  Copyright (C) 1997-2024 id-design, inc. All rights reserved.
 //
 
-#if os(macOS)
+#if os(iOS)
+#else
+
 import Foundation
 import Log4swift
 
@@ -73,7 +75,7 @@ public extension Process {
         self.init()
         self.executableURL = launchURL
         self.arguments = arguments
-        self.currentDirectoryPath = NSHomeDirectory()
+        self.currentDirectoryURL = URL.home
         self.environment = {
             var rv = ProcessInfo.processInfo.environment
             
