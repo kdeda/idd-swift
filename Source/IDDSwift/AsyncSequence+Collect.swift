@@ -17,6 +17,7 @@ public extension AsyncSequence {
     /// By default this is `1000` or one second. The waitForMilliseconds must be a non zero
     /// positive integer.
     /// - Returns: Returns: A new stream of array of all elements.
+    @Sendable
     func collect(waitForMilliseconds: Int = 0) -> AsyncStream<[Element]> {
         AsyncStream { continuation in
             let buffer = ArrayActor<Element>()

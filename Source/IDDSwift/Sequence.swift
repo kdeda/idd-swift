@@ -13,7 +13,7 @@ import Foundation
  */
 public extension Sequence {
     func asyncMap<T>(
-        _ transform: (Element) async throws -> T
+        _ transform: @Sendable (Element) async throws -> T
     ) async rethrows -> [T] {
         var values = [T]()
 
@@ -25,7 +25,7 @@ public extension Sequence {
     }
 
     func asyncCompactMap<T>(
-        _ transform: (Element) async throws -> T?
+        _ transform: @Sendable (Element) async throws -> T?
     ) async rethrows -> [T] {
         var values = [T]()
 
@@ -39,7 +39,7 @@ public extension Sequence {
     }
 
     func asyncForEach(
-        _ operation: (Element) async throws -> Void
+        _ operation: @Sendable (Element) async throws -> Void
     ) async rethrows {
         for element in self {
             try await operation(element)

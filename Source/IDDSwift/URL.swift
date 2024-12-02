@@ -261,7 +261,11 @@ public extension URL {
         
         repeat {
             if realURL.isVolume && volumeUUID == realURL._volumeUUID(mountedVolumes) {
-                URL.logger.debug("rv: '\(realURL.path)' from: '\(self.path)'")
+                if realURL.path == self.path {
+                    URL.logger.debug("rv: '\(realURL.path)'")
+                } else {
+                    URL.logger.debug("rv: '\(realURL.path)' from: '\(self.path)'")
+                }
                 return realURL
             } else if !mountedVolumes.contains(realURL.path) {
                 realURL = realURL.deletingLastPathComponent()
@@ -468,15 +472,22 @@ public extension URL {
         }
         return otherURL
     }
-    
-    // these will fail for resource fork files ..
-    //
+
+    /**
+     This is the real byte size of the file, if you create a file with 1 byte this will return 1.
+
+     This call will return the wrong value for resource fork files ..
+     */
     var logicalSize: Int64 {
         return Int64((try? self.resourceValues(forKeys: [.fileSizeKey]))?.fileSize ?? 0)
     }
     
-    // these will fail for resource fork files ..
-    //
+    /**
+     This is the physical byte size of the file, if you create a file with 1 byte this will return 4096. Where 4096 is the block size.
+     For larger files the operating system will round up the value by block size.
+
+     This call will return the wrong value for resource fork files ..
+     */
     var physicalSize: Int64 {
         return Int64((try? self.resourceValues(forKeys: [.fileAllocatedSizeKey]))?.fileAllocatedSize ?? 0)
     }
@@ -777,20 +788,22 @@ public extension URL {
      */
     func append(data: Data) {
         let startDate = Date()
-        
+
         do {
             if !self.fileExist {
                 // create an empty file
                 try Data().write(to: self)
             }
             let fileHandle = try FileHandle(forWritingTo: self)
+
             fileHandle.seekToEndOfFile()
             fileHandle.write(data)
             if startDate.elapsedTimeInMilliseconds > 10.0 {
                 URL.logger.info("appended: '\(data.count) bytes' to: '\(self.path)' completed in: '\(startDate.elapsedTime) ms'")
             }
+            try fileHandle.close()
         } catch {
-            URL.logger.error("error: '\(error.localizedDescription)'")
+            URL.logger.error("error: '\(error.localizedDescription)' filePath: '\(self.path)'")
         }
     }
     

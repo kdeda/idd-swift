@@ -92,8 +92,3 @@ fileprivate extension String {
         self + ".json"
     }
 }
-
-public extension UserDefaults {
-    @UserDefaultsValue("", forKey: "pathPrefix")
-    static var pathPrefix: String
-}

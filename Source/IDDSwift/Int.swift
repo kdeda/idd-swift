@@ -16,7 +16,7 @@ public extension Int {
         rv.locale = Locale.current
         return rv
     }()
-    
+
     static let compactFormater: ByteCountFormatter = {
         let rv = ByteCountFormatter()
         
@@ -85,7 +85,7 @@ public extension Int64 {
         return ComparisonResult.orderedAscending
     }
     
-    private static var fileSizeTypes = ["bytes", "KB", "MB", "GB", "TB", "PB", "XX"]
+    private static let fileSizeTypes = ["bytes", "KB", "MB", "GB", "TB", "PB", "XX"]
 
     var compactFormattedV2: String {
         let oneKB: Int64 = 1000
