@@ -1,5 +1,5 @@
 //
-//  NSWorkSpace.swift
+//  NSWorkspace+Extensions.swift
 //  IDDSwift
 //
 //  Created by Klajd Deda on 11/8/17.

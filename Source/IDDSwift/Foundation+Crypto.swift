@@ -17,7 +17,7 @@ public extension Data {
      */
     var md5: String {
         let digest = Insecure.MD5.hash(data: self)
-        var tokens = digest.map { String(format: "%02hhx", $0) }
+        var tokens = digest.map { String(format: "%02hx", $0) }
 
         if tokens.count == 16 {
             tokens.insert("-", at: 4)
@@ -25,9 +25,10 @@ public extension Data {
             tokens.insert("-", at: 10)
             tokens.insert("-", at: 13)
 
-            if let uuid = UUID(uuidString: tokens.joined(separator: "").uppercased()) {
-                return uuid.uuidString
-            }
+            //  // not sure we need this ...
+            //  if let uuid = UUID(uuidString: tokens.joined(separator: "").uppercased()) {
+            //      return uuid.uuidString
+            //  }
         }
         return tokens.joined(separator: "").uppercased()
     }
@@ -36,31 +37,91 @@ public extension Data {
 #if os(macOS)
 
 public extension URL {
-     var sha256: String {
+    var md5: String {
         guard let handle = try? FileHandle(forReadingFrom: self)
         else { return "" }
-        var hasher = SHA256()
+        defer {
+            handle.closeFile()
+        }
+        let logicalSize = self.logicalSize
+        guard logicalSize > 0
+        else { return "" }
+
+        let startDate = Date()
+        let bufferLength = 256 * 1024
+        var hasher = CryptoKit.Insecure.MD5()
+        var wasCancelled = false
 
         while autoreleasepool(invoking: {
-            let nextChunk = handle.readData(ofLength: SHA256.blockByteCount)
-            guard !nextChunk.isEmpty 
+            guard !Task.isCancelled // preemptive cancellation
+            else {
+                wasCancelled = true
+                // Log4swift[Self.self].info("url: '\(self.path)' was cancelled in: '\(startDate.elapsedTime) ms'")
+                return false
+            }
+
+            let nextChunk = handle.readData(ofLength: bufferLength)
+            guard !nextChunk.isEmpty
+            else { return false }
+
+            hasher.update(data: nextChunk)
+            return true
+        }) { }
+
+        guard !wasCancelled
+        else { return "" }
+        let data = Data(hasher.finalize())
+        let rv = data.md5
+
+        if startDate.elapsedTimeInMilliseconds > 10 {
+            Log4swift[Self.self].info("url: '\(self.path)' md5: '\(rv)' from: '\(logicalSize.decimalFormatted) bytes' in: '\(startDate.elapsedTime) ms'")
+        }
+        return rv
+    }
+
+    /**
+     A lot faster than the md5, like 4x on m2 ultra
+     */
+    var sha256: String {
+        guard let handle = try? FileHandle(forReadingFrom: self)
+        else { return "" }
+        defer {
+            handle.closeFile()
+        }
+        let logicalSize = self.logicalSize
+        guard logicalSize > 0
+        else { return "" }
+
+        let startDate = Date()
+        let bufferLength = 256 * 1024
+        var hasher = SHA256()
+        var wasCancelled = false
+
+        while autoreleasepool(invoking: {
+            guard !Task.isCancelled // preemptive cancellation
+            else {
+                wasCancelled = true
+                // Log4swift[Self.self].info("url: '\(self.path)' was cancelled in: '\(startDate.elapsedTime) ms'")
+                return false
+            }
+
+            let nextChunk = handle.readData(ofLength: bufferLength)
+            guard !nextChunk.isEmpty
             else { return false }
             
             hasher.update(data: nextChunk)
             return true
         }) { }
-        let digest = hasher.finalize()
 
-        var tokens = digest.map { String(format: "%02x", $0) }
+        guard !wasCancelled
+        else { return "" }
+        let data = Data(hasher.finalize())
+        let rv = data.md5
 
-        if tokens.count == 32 {
-            tokens.insert("-", at: 8)
-            tokens.insert("-", at: 14)
-            tokens.insert("-", at: 21)
-            tokens.insert("-", at: 28)
+        if startDate.elapsedTimeInMilliseconds > 10 {
+            Log4swift[Self.self].info("url: '\(self.path)' sha256: '\(rv)' from: '\(logicalSize.decimalFormatted) bytes' in: '\(startDate.elapsedTime) ms'")
         }
-
-        return tokens.joined(separator: "").uppercased()
+        return rv
     }
 }
 #endif
