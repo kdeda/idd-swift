@@ -16,7 +16,7 @@ import Foundation
  https://stackoverflow.com/questions/75776172/passthroughsubjects-asyncpublisher-values-property-not-producing-all-values
  */
 public final class Channel<Output> where Output: Sendable {
-    nonisolated(unsafe)
+//    nonisolated(unsafe)
     private let subject = PassthroughSubject<Output, Never>()
 
     public init() {

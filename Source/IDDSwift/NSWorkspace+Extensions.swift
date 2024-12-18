@@ -11,44 +11,45 @@ import Cocoa
 import Log4swift
 
 public extension NSWorkspace {
+    fileprivate struct SystemVersion {
+        let majorOSVersion: Int
+        let minorOSVersion: Int
+
+        init() {
+            let tokens: [String] = {
+                guard let versionInfo = NSDictionary.init(contentsOfFile: "/System/Library/CoreServices/SystemVersion.plist"),
+                      let productVersion = versionInfo["ProductVersion"] as? String
+                else { return ["-1", "-1"] }
+
+                let tokens = Array(productVersion.components(separatedBy: ".").prefix(2))
+                guard tokens.count == 2
+                else { return ["-1", "-1"] }
+
+                return tokens
+            }()
+
+            self.majorOSVersion = Int(tokens[0]) ?? 0
+            self.minorOSVersion = Int(tokens[1]) ?? 0
+        }
+    }
+
+    nonisolated(unsafe)
     private static var notifyAbout_DS_Store_Files_once = true
     // https://apple.stackexchange.com/questions/299138/show-hidden-files-files-in-finder-except-ds-store/300210#300210
     //
 
     // MARK: - Class methods -
     
-    private static var _majorOSVersion: Int = -1
-    private static var _minorOSVersion: Int = -1
-    
-    private static func updateVersions() {
-        if let versionInfo = NSDictionary.init(contentsOfFile: "/System/Library/CoreServices/SystemVersion.plist") {
-            if let productVersion = versionInfo["ProductVersion"] as? String {
-                var tokens = productVersion.components(separatedBy: ".")
-                
-                while tokens.count > 2 {
-                    tokens.removeLast()
-                }
-                if tokens.count == 2 {
-                    _majorOSVersion = Int(tokens[0]) ?? 0
-                    _minorOSVersion = Int(tokens[1]) ?? 0
-                }
-            }
-        }
-    }
-    
-    static var majorOSVersion: Int = {
-        if _majorOSVersion == -1 {
-            updateVersions()
-        }
-        return _majorOSVersion
-    }()
+    nonisolated(unsafe)
+    private static var systemVersion: SystemVersion = .init()
 
-    static var minorOSVersion: Int = {
-        if _minorOSVersion == -1 {
-            updateVersions()
-        }
-        return _minorOSVersion
-    }()
+    static var majorOSVersion: Int {
+        systemVersion.majorOSVersion
+    }
+
+    static var minorOSVersion: Int {
+        systemVersion.minorOSVersion
+    }
 
     // MARK: - Private methods -
 

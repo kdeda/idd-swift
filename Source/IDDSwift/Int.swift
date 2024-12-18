@@ -17,6 +17,7 @@ public extension Int {
         return rv
     }()
 
+    nonisolated(unsafe)
     static let compactFormater: ByteCountFormatter = {
         let rv = ByteCountFormatter()
         

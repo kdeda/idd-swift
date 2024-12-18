@@ -2,23 +2,21 @@ import XCTest
 import Log4swift
 import IDDSwift
 
+@MainActor
 final class IDDSwiftTests: XCTestCase {
-    static var allTests = [
-        ("testAsyncOutput", testAsyncOutput),
-        ("testProcessFetchString", testProcessFetchString),
-        ("testSH256", testSH256)
-    ]
+//    static var allTests = [
+//        ("testAsyncOutput", testAsyncOutput),
+//        ("testProcessFetchString", testProcessFetchString),
+//        ("testSH256", testSH256)
+//    ]
+//
+//    static var logConfig = false
 
-    static var logConfig = false
+    override func setUp() {
+        super.setUp()
 
-    override func setUp() async throws {
-        guard Self.logConfig
-        else { return }
-
-        LoggingSystem.bootstrap { label in
-            ConsoleHandler(label: label)
-        }
-        Self.logConfig = true
+        Log4swift.configure(fileLogConfig: nil)
+        // Self.logConfig = true
     }
     
     /**
@@ -39,8 +37,8 @@ final class IDDSwiftTests: XCTestCase {
 #else
         let logFile = URL(fileURLWithPath: "/tmp/asyncOutput.log")
         let messageCount = 10
-        var logReadContent: [String] = .init()
-        var logWriteContent: [String] = .init()
+        let logReadContent: ArrayActor<String> = .init()
+        let logWriteContent: ArrayActor<String> = .init()
 
         Log4swift[Self.self].info("-----")
         Log4swift[Self.self].info("Starting ...")
@@ -83,11 +81,11 @@ final class IDDSwiftTests: XCTestCase {
 
                     case let .stdout(data):
                         let message = String(data: data, encoding: .utf8) ?? ""
-                        logReadContent.append(message.trimmingCharacters(in: .newlines))
+                        await logReadContent.append(message.trimmingCharacters(in: .newlines))
 
                     case let .stderr(data):
                         let message = String(data: data, encoding: .utf8) ?? ""
-                        logReadContent.append(message.trimmingCharacters(in: .newlines))
+                        await logReadContent.append(message.trimmingCharacters(in: .newlines))
                     }
                 }
             }
@@ -99,7 +97,7 @@ final class IDDSwiftTests: XCTestCase {
                 await (0 ..< messageCount).asyncForEach { index in
                     let message = Date().stringWithDefaultFormat + " " + String(format: "%08d", index)
 
-                    logWriteContent.append(message)
+                    await logWriteContent.append(message)
                     fileHandle.write(Data(message.utf8))
                     fileHandle.write(Data("\n".utf8))
                     
@@ -112,7 +110,9 @@ final class IDDSwiftTests: XCTestCase {
             }
         }
 
-        XCTAssertEqual(logReadContent, logWriteContent)
+        let readValues = await logReadContent.popAll()
+        let writeValues = await logWriteContent.popAll()
+        XCTAssertEqual(readValues, writeValues)
 #endif
     }
 

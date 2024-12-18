@@ -59,7 +59,7 @@ public extension DispatchSourceFileSystemObject {
  Given a file url it will listen for .write events and notify
  when the children are added/removed to the url. This code will not recurse down to children
  */
-fileprivate final class FileChangeListener: NSObject {
+fileprivate final class FileChangeListener: @unchecked Sendable {
     private(set) var url: URL
     private let eventType: DispatchSource.FileSystemEvent = [.extend, .delete]
     private(set) var eventHandler: (FileChange) -> Void

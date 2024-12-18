@@ -39,11 +39,11 @@ public extension URL {
         return URL.init(fileURLWithPath: NSHomeDirectory())
     }()
     
-    static var homeLibraryCaches: URL = {
+    static let homeLibraryCaches: URL = {
         return home.appendingPathComponent("Library/Caches")
     }()
     
-    static var systemLibraryCaches: URL = {
+    static let systemLibraryCaches: URL = {
         return URL.init(fileURLWithPath: "/Library/Caches")
     }()
     

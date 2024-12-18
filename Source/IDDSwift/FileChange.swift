@@ -11,7 +11,7 @@ import Foundation
 /**
  We could map more cases from DispatchSource.FileSystemEvent here
  */
-public enum FileChange: Equatable {
+public enum FileChange: Equatable, Sendable {
     case started(Data)
     case added(Data)
     case fileDeleted

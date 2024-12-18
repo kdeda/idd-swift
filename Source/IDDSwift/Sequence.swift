@@ -13,24 +13,24 @@ import Foundation
  */
 public extension Sequence {
     func asyncMap<T>(
-        _ transform: @Sendable (Element) async throws -> T
+        _ operation: @Sendable (Element) async throws -> T
     ) async rethrows -> [T] {
         var values = [T]()
 
         for element in self {
-            try await values.append(transform(element))
+            try await values.append(operation(element))
         }
 
         return values
     }
 
     func asyncCompactMap<T>(
-        _ transform: @Sendable (Element) async throws -> T?
+        _ operation: @Sendable (Element) async throws -> T?
     ) async rethrows -> [T] {
         var values = [T]()
 
         for element in self {
-            if let value = try await transform(element) {
+            if let value = try await operation(element) {
                 values.append(value)
             }
         }

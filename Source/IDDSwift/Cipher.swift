@@ -13,7 +13,7 @@ import Crypto
  Simple symetric key cipher. For more fun the key can be a password of our choosing.
  For more noise the password could be a random string like an uuidgen.
  */
-public struct Cipher {
+public struct Cipher: Sendable {
     /**
      https://www.swift.org/blog/crypto/
      https://stackoverflow.com/questions/56828125/how-do-i-access-the-underlying-key-of-a-symmetrickey-in-cryptokit
@@ -54,8 +54,8 @@ public struct Cipher {
 
     var password: String
     var version: Int
-    var logInfo: ((_ message: String) -> Void)?
-    var logError: ((_ message: String) -> Void)?
+    var logInfo: (@Sendable (_ message: String) -> Void)?
+    var logError: (@Sendable (_ message: String) -> Void)?
 
     /**
      password shall be a random uuid for more noise
@@ -63,8 +63,8 @@ public struct Cipher {
     public init(
         password: String = "CFB6372F-0C02-4892-9744-FC09789A8EB6",
         version: Int = 1,
-        logInfo: ((_ message: String) -> Void)? = nil,
-        logError: ((_ message: String) -> Void)? = nil
+        logInfo: (@Sendable (_ message: String) -> Void)? = nil,
+        logError: (@Sendable (_ message: String) -> Void)? = nil
     ) {
         self.password = password
         self.version = version
