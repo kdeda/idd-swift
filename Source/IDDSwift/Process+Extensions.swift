@@ -26,7 +26,7 @@ public extension Process {
      If this was a var swift will see the mutating func as mutating the declared
      var and that is not lock protected ...
      */
-    final class ProcessData {
+    final class ProcessData: @unchecked Sendable {
         private var stdout = Data()
         private var stderr = Data()
         private let lock = NSRecursiveLock()

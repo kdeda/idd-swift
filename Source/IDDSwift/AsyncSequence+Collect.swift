@@ -10,61 +10,52 @@
 import Foundation
 import Log4swift
 
-public extension AsyncSequence {
-    /// Collect elements from an async sequence.
+/**
+ https://liudasbar.medium.com/the-new-world-of-swift-concurrency-a-deep-dive-into-async-await-actors-and-more-e03ee9a72450
+ https://swiftonserver.com/advanced-async-sequences/
+
+ https://stackoverflow.com/questions/73425713/swift-map-asyncstream-into-another-asyncstream
+ */
+
+extension AsyncStream {
+    /// Collect elements from upstream in the time interval of waitForMilliseconds and bunches them.
+    /// This helps the upstream handle arrays of elements every waitForMilliseconds rather than a complete deluge.
     ///
     /// - Parameter waitForMilliseconds: The number of milliseconds to wait before emitting.
-    /// By default this is `1000` or one second. The waitForMilliseconds must be a non zero
-    /// positive integer.
-    /// - Returns: Returns: A new stream of array of all elements.
-    @Sendable
-    func collect(waitForMilliseconds: Int = 0) -> AsyncStream<[Element]> {
-        AsyncStream { continuation in
+    /// The waitForMilliseconds must be a sensible value say larger than 10ms.
+    /// - Returns: Returns: A new AsyncStream of arrays of elements.
+    public func collect(
+        waitForMilliseconds: UInt
+    ) -> AsyncStream<[Element]> where Element: Sendable {
+        return AsyncStream<[Element]> { continuation in
             let buffer = ArrayActor<Element>()
-            // let startDate = Date()
 
-            // Log4swift[Self.self].info("waitForMilliseconds: '\(waitForMilliseconds) ms'")
-            // Receive data updates in this task
+            func drain() async {
+                let batch = await buffer.popAll()
+                if !batch.isEmpty {
+                    continuation.yield(batch)
+                }
+            }
+
+            // re-emit upstream after waiting for waitForMilliseconds
             let task1 = Task {
-                for try await element in self {
+                while !Task.isCancelled {
+                    try? await Task.sleep(nanoseconds: .nanoseconds(milliseconds: Int(waitForMilliseconds)))
+                    await drain()
+                }
+            }
+
+            let task2 = Task {
+                // pile them in the buffer as fast as you can
+                for await element in self {
                     await buffer.append(element)
                 }
 
-                // once the real sequence ends
-                // emitt the last batch and terminate all
-                let batch = await buffer.popAll()
-
-                // Log4swift[Self.self].info("batch.count: \(batch.count)")
-                if !batch.isEmpty {
-                    continuation.yield(batch)
-
-                    // not really sure whay i had to inject a sleep here :-)
-                    // maybe because we are going to terminate this stream
-                    // and with it both task1, task2 defined here
-                    try? await Task.sleep(nanoseconds: .nanoseconds(milliseconds: 50))
-                }
+                await drain()
                 continuation.finish()
-            }
-            
-            // re-emit upstream
-            let task2 = Task {
-                while !Task.isCancelled {
-                    try? await Task.sleep(nanoseconds: .nanoseconds(milliseconds: waitForMilliseconds))
-                    let batch = await buffer.popAll()
-
-                    if !batch.isEmpty {
-                        continuation.yield(batch)
-                        //  } else {
-                        //      // If we do not produce anything during the waitForMilliseconds
-                        //      // We will not emitt
-                        //      let elapsed = startDate.elapsedTimeInMilliseconds / Double(waitForMilliseconds)
-                        //      Log4swift[Self.self].info("batch.count: \(batch.count): '\(Int(elapsed)) tick'")
-                    }
-                }
             }
 
             continuation.onTermination = { _ in
-                // Log4swift[Self.self].info("terminated ...")
                 task1.cancel()
                 task2.cancel()
             }

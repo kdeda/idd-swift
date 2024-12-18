@@ -13,8 +13,11 @@ import Cocoa
 #endif
 
 public extension FileManager {
+    nonisolated(unsafe)
     private static var mountedVolumes = [String]()
+    nonisolated(unsafe)
     private static var mountedVolumesLastFetchDate = Date.distantPast
+    nonisolated(unsafe)
     private static var registerForWorkSpaceNotifications = false
 #if os(macOS)
     private static let lock = NSRecursiveLock()
@@ -23,6 +26,7 @@ public extension FileManager {
     /**
      it will return false if the file exists and we could not remove it
      */
+    @discardableResult
     func removeItemIfExist(at pathURL: URL) -> Bool {
         do {
             if pathURL.fileExist {

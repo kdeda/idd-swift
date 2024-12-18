@@ -11,7 +11,7 @@
 import Foundation
 import Log4swift
 
-public struct SystemProfiler {
+public struct SystemProfiler: Sendable {
     public static let shared = SystemProfiler()
     public static let profilerURL = URL(fileURLWithPath: "/usr/sbin/system_profiler")
     public static let logger = Log4swift[Self.self]

@@ -15,11 +15,6 @@ public final actor ArrayActor<Value: Sendable> {
         value.reserveCapacity(reserveCapacity)
     }
 
-    /**
-     Overwrite the isolated value with a new value.
-
-     - Parameter newValue: The value to replace the current isolated value with.
-     */
     public func append(_ newValue: Value) {
         value.append(newValue)
     }
@@ -27,10 +22,6 @@ public final actor ArrayActor<Value: Sendable> {
     public func append(contentsOf newValues: [Value]) {
         value.append(contentsOf: newValues)
     }
-
-    //    public func remove(_ existing: Value) {
-    //        value.removeAll(where: { $0 == existing })
-    //    }
 
     /**
      Pop all and return.

@@ -10,12 +10,21 @@ import Foundation
 import Log4swift
 
 public extension Data {
+    /**
+     Allows me to quietly create data from a file path
+     Even if the file path does not exist
+     */
     init(withURL url: URL) {
         do {
-            try self.init(contentsOf: url)
+            if url.fileExist {
+                try self.init(contentsOf: url)
+            } else {
+                self.init()
+                Log4swift[Self.self].info("filePath: '\(url.path)' was missing, will return empty data.")
+            }
         } catch {
             self.init()
-            Log4swift[Self.self].error("error: '\(error.localizedDescription)' We will return empty data.")
+            Log4swift[Self.self].error("error: '\(error.localizedDescription)' will return empty data.")
         }
     }
     
