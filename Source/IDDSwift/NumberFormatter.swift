@@ -12,7 +12,8 @@ public extension NumberFormatter {
     static let formaterWith3digits: NumberFormatter = {
         let rv = NumberFormatter()
         
-        rv.locale = Locale.init(identifier: "en_US_POSIX")
+        rv.locale = Locale.init(identifier: "en_US")
+        rv.numberStyle = .decimal
         rv.maximumFractionDigits = 3
         rv.minimumFractionDigits = 3
         return rv
@@ -21,7 +22,8 @@ public extension NumberFormatter {
     static let formaterWith2digits: NumberFormatter = {
         let rv = NumberFormatter()
 
-        rv.locale = Locale.init(identifier: "en_US_POSIX")
+        rv.locale = Locale.init(identifier: "en_US")
+        rv.numberStyle = .decimal
         rv.maximumFractionDigits = 2
         rv.minimumFractionDigits = 2
         return rv

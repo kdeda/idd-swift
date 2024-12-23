@@ -14,7 +14,7 @@ public extension Date {
      Its default timeZone is the device’s local time zone.
      */
     static let defaultFormatter: DateFormatter = {
-        let rv = DateFormatter.init(withFormatString: "yyyy-MM-dd HH:mm:ss.SSS Z", andPOSIXLocale: true)
+        let rv = DateFormatter.init(posixFormatString: "yyyy-MM-dd HH:mm:ss.SSS Z")
         return rv
     }()
 
@@ -41,11 +41,11 @@ public extension Date {
     }
 
     var elapsedTime: String {
-        elapsedTimeInMilliseconds.with3Digits
+        elapsedTimeInMilliseconds.with3Digits + " ms"
     }
 
     func string(withFormat formatString: String) -> String {
-        let dateFormatter = DateFormatter.init(withFormatString: formatString, andPOSIXLocale: true)
+        let dateFormatter = DateFormatter.init(posixFormatString: formatString)
         return dateFormatter.string(from: self)
     }
 
