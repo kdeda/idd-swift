@@ -9,6 +9,32 @@
 import Foundation
 import Log4swift
 
+fileprivate struct Defaults {
+    /**
+     Be ware this is not UTC, which might be perfectly fine.
+     Its default timeZone is the device’s local time zone.
+     */
+    static let defaultFormatter: DateFormatter = {
+        let rv = DateFormatter.init(posixFormatString: "yyyy-MM-dd HH:mm:ss")
+        return rv
+    }()
+
+    static let encoder: JSONEncoder = {
+        let rv = JSONEncoder()
+
+        rv.outputFormatting = .prettyPrinted
+        rv.dateEncodingStrategy = .formatted(Defaults.defaultFormatter)
+        return rv
+    }()
+
+    static let decoder: JSONDecoder = {
+        let rv = JSONDecoder()
+
+        rv.dateDecodingStrategy = .formatted(Defaults.defaultFormatter)
+        return rv
+    }()
+}
+
 /**
  Convenience type to implement a PropertyWrapper
  I will note that even this code is simple it has been really hard to use it clear it from buggs.
@@ -51,12 +77,10 @@ public struct UserDefaultsValue<Value>: Equatable, Sendable where Value: Equatab
             let value: Value? = {
                 guard let storedValue = UserDefaults.standard.object(forKey: key.jsonKey) as? String
                 else { return UserDefaults.standard.object(forKey: key) as? Value }
-                let encoder = JSONDecoder()
-                
-                encoder.dateDecodingStrategy = .iso8601
+
                 // Log4swift[Self.self].info("loaded raw value \(self.key): '\(storedValue ?? "unknown ...")'")
                 let data = storedValue.data(using: .utf8) ?? Data()
-                return try? encoder.decode(Value.self, from: data)
+                return try? Defaults.decoder.decode(Value.self, from: data)
             }()
                 
             if let stringValue = value as? String,
@@ -70,11 +94,7 @@ public struct UserDefaultsValue<Value>: Equatable, Sendable where Value: Equatab
         }
         set {
             do {
-                let encoder = JSONEncoder()
-                
-                encoder.outputFormatting = .prettyPrinted
-                encoder.dateEncodingStrategy = .iso8601
-                let data = try encoder.encode(newValue)
+                let data = try Defaults.encoder.encode(newValue)
                 let storedValue = String(data: data, encoding: .utf8) ?? ""
                 
                 UserDefaults.standard.set(storedValue, forKey: key.jsonKey)

@@ -9,7 +9,7 @@
 import Foundation
 
 public extension DateFormatter {
-    convenience init(withFormatString formatString: String, andPOSIXLocale posixLocale: Bool) {
+    convenience init(posixFormatString formatString: String) {
         self.init()
         self.locale = Locale.init(identifier: "en_US_POSIX")
         self.dateFormat = formatString

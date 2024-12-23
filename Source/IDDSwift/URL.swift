@@ -48,8 +48,8 @@ public extension URL {
     }()
     
     static let trashDateFormatter: DateFormatter = {
-        let rv = DateFormatter.init(withFormatString: "HH.mm.ss a", andPOSIXLocale: true)
-        
+        let rv = DateFormatter.init(posixFormatString: "HH.mm.ss a")
+
         rv.amSymbol = "AM"
         rv.pmSymbol = "PM"
         return rv
@@ -799,7 +799,7 @@ public extension URL {
             fileHandle.seekToEndOfFile()
             fileHandle.write(data)
             if startDate.elapsedTimeInMilliseconds > 10.0 {
-                URL.logger.info("appended: '\(data.count) bytes' to: '\(self.path)' completed in: '\(startDate.elapsedTime) ms'")
+                URL.logger.info("appended: '\(data.count) bytes' to: '\(self.path)' completed in: '\(startDate.elapsedTime)'")
             }
             try fileHandle.close()
         } catch {

@@ -56,7 +56,7 @@ public extension URL {
             guard !Task.isCancelled // preemptive cancellation
             else {
                 wasCancelled = true
-                // Log4swift[Self.self].info("url: '\(self.path)' was cancelled in: '\(startDate.elapsedTime) ms'")
+                // Log4swift[Self.self].info("url: '\(self.path)' was cancelled in: '\(startDate.elapsedTime)'")
                 return false
             }
 
@@ -74,7 +74,7 @@ public extension URL {
         let rv = data.md5
 
         if startDate.elapsedTimeInMilliseconds > 10 {
-            Log4swift[Self.self].info("url: '\(self.path)' md5: '\(rv)' from: '\(logicalSize.decimalFormatted) bytes' in: '\(startDate.elapsedTime) ms'")
+            Log4swift[Self.self].info("url: '\(self.path)' md5: '\(rv)' from: '\(logicalSize.decimalFormatted) bytes' in: '\(startDate.elapsedTime)'")
         }
         return rv
     }
@@ -101,7 +101,7 @@ public extension URL {
             guard !Task.isCancelled // preemptive cancellation
             else {
                 wasCancelled = true
-                // Log4swift[Self.self].info("url: '\(self.path)' was cancelled in: '\(startDate.elapsedTime) ms'")
+                // Log4swift[Self.self].info("url: '\(self.path)' was cancelled in: '\(startDate.elapsedTime)'")
                 return false
             }
 
@@ -119,7 +119,7 @@ public extension URL {
         let rv = data.md5
 
         if startDate.elapsedTimeInMilliseconds > 125 {
-            Log4swift[Self.self].info("url: '\(self.path)' sha256: '\(rv)' from: '\(logicalSize.decimalFormatted) bytes' in: '\(startDate.elapsedTime) ms'")
+            Log4swift[Self.self].info("url: '\(self.path)' sha256: '\(rv)' from: '\(logicalSize.decimalFormatted) bytes' in: '\(startDate.elapsedTime)'")
         }
         return rv
     }
