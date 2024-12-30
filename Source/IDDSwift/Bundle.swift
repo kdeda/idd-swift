@@ -3,7 +3,7 @@
 //  IDDSwift
 //
 //  Created by Klajd Deda on 7/26/18.
-//  Copyright (C) 1997-2024 id-design, inc. All rights reserved.
+//  Copyright (C) 1997-2025 id-design, inc. All rights reserved.
 //
 
 import Foundation
@@ -120,18 +120,18 @@ public extension Bundle {
             name = Bundle.main[.localizedInfo, "CFBundleName", Bundle.main[.info, "CFBundleName", "myapp"]]
             shortVersion = Bundle.main[.info, "CFBundleShortVersionString", "1.0.1"]
             buildNumber = Int(Bundle.main[.info, "CFBundleVersion", "1010"]) ?? 1010
-            startDate = Date.init().stringWithDefaultFormat
+            startDate = Date.init().string(withFormat: "MMMM dd, yyyy 'at' HH:mm a")
             let creationDate_ = Bundle.main.executableURL?.creationDate ?? Date.distantPast
-            creationDate = creationDate_.stringWithDefaultFormat
-            creationDateLocalized = creationDate_.string(withFormat: "MMMM dd, yyyy")
+            creationDate = creationDate_.string(withFormat: "MMMM dd, yyyy 'at' HH:mm a")
+            creationDateLocalized = creationDate_.string(withFormat: "MMMM dd, yyyy at HH:mm ")
         }
         
         public var shortDescription: String {
             let rv = [
-                "\(name) \(shortVersion)",
-                "build: \(buildNumber)",
-                "on: \(creationDate)",
-                "started: \(startDate)"
+                "\(name): '\(shortVersion)'",
+                "build: '\(buildNumber)'",
+                "on: '\(creationDate)'",
+                "started: '\(startDate)'"
             ]
             return rv.joined(separator: ", ")
         }

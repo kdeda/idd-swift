@@ -3,7 +3,7 @@
 //  IDDSwift
 //
 //  Created by Klajd Deda on 3/6/21.
-//  Copyright (C) 1997-2024 id-design, inc. All rights reserved.
+//  Copyright (C) 1997-2025 id-design, inc. All rights reserved.
 //
 
 import Foundation
@@ -28,7 +28,7 @@ public extension Data {
         var rv = Data()
         // let startDate = Date.init()
         // defer {
-        //     Log4swift[Self.self].info("in: '\(self.count.decimalFormatted)' out: '\(rv.count.decimalFormatted) bytes' completed in: '\(startDate.elapsedTime)'")
+        //     Log4swift[Self.self].info("in: '\(self.count.decimalFormatted)' out: '\(rv.count.decimalFormatted) bytes' elapsedTime: '\(startDate.elapsedTime)'")
         // }
 
         let processor = ZSTDProcessor(useContext: true)
@@ -61,7 +61,7 @@ public extension Data {
         var rv = Data()
         // let startDate = Date.init()
         // defer {
-        //     Log4swift[Self.self].info("in: '\(self.count.decimalFormatted)' out: '\(rv.count.decimalFormatted) bytes' completed in: '\(startDate.elapsedTime)'")
+        //     Log4swift[Self.self].info("in: '\(self.count.decimalFormatted)' out: '\(rv.count.decimalFormatted) bytes' elapsedTime: '\(startDate.elapsedTime)'")
         // }
 
         let processor = ZSTDProcessor(useContext: true)

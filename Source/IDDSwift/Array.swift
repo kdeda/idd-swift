@@ -3,7 +3,7 @@
 //  IDDSwift
 //
 //  Created by Klajd Deda on 12/26/19.
-//  Copyright (C) 1997-2024 id-design, inc. All rights reserved.
+//  Copyright (C) 1997-2025 id-design, inc. All rights reserved.
 //
 
 import Foundation

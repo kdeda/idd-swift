@@ -3,7 +3,7 @@
 //  IDDSwift
 //
 //  Created by Klajd Deda on 9/16/17.
-//  Copyright (C) 1997-2024 id-design, inc. All rights reserved.
+//  Copyright (C) 1997-2025 id-design, inc. All rights reserved.
 //
 
 import Foundation
@@ -368,10 +368,24 @@ public extension URL {
     }
     
     var contentModificationDate: Date {
-        return (try? self.resourceValues(forKeys: [.contentModificationDateKey]))?
-            .contentModificationDate ?? Date.distantPast
+        get {
+            let fresh = URL.init(fileURLWithPath: self.path)
+            return (try? fresh.resourceValues(forKeys: [.contentModificationDateKey]))?
+                .contentModificationDate ?? Date.distantPast
+        }
+        set {
+            do {
+                var newAttributes = try FileManager.default.attributesOfItem(atPath: self.path)
+                newAttributes[FileAttributeKey.modificationDate] = newValue
+                try FileManager.default.setAttributes(newAttributes, ofItemAtPath: self.path)
+            } catch {
+                URL.logger.error("error: '\(error.localizedDescription)'")
+                URL.logger.error("filePath: '\(self.path)'")
+            }
+        }
     }
-    
+
+
     // http://swiftrien.blogspot.com/2015/11/socket-programming-in-swift-part-3-bind.html
     //
     // proven accurate
@@ -713,7 +727,8 @@ public extension URL {
 #endif
         return false
     }
-    
+
+    // warning `resourceValues(forKeys:)` will be caching values
     var isRegularFile: Bool {
         return (try? self.resourceValues(forKeys: [.isRegularFileKey]))?
             .isRegularFile ?? false
@@ -793,13 +808,14 @@ public extension URL {
             if !self.fileExist {
                 // create an empty file
                 try Data().write(to: self)
+                URL.logger.info("created: '\(self.path)'")
             }
             let fileHandle = try FileHandle(forWritingTo: self)
 
             fileHandle.seekToEndOfFile()
             fileHandle.write(data)
             if startDate.elapsedTimeInMilliseconds > 10.0 {
-                URL.logger.info("appended: '\(data.count) bytes' to: '\(self.path)' completed in: '\(startDate.elapsedTime)'")
+                URL.logger.info("appended: '\(data.count) bytes' to: '\(self.path)' elapsedTime: '\(startDate.elapsedTime)'")
             }
             try fileHandle.close()
         } catch {

@@ -3,7 +3,7 @@
 //  IDDSwift
 //
 //  Created by Klajd Deda on 4/3/24.
-//  Copyright (C) 1997-2024 id-design, inc. All rights reserved.
+//  Copyright (C) 1997-2025 id-design, inc. All rights reserved.
 //
 
 import Foundation
@@ -56,7 +56,7 @@ public extension URL {
             guard !Task.isCancelled // preemptive cancellation
             else {
                 wasCancelled = true
-                // Log4swift[Self.self].info("url: '\(self.path)' was cancelled in: '\(startDate.elapsedTime)'")
+                // Log4swift[Self.self].info("url: '\(self.path)' was cancelled elapsedTime: '\(startDate.elapsedTime)'")
                 return false
             }
 
@@ -74,7 +74,7 @@ public extension URL {
         let rv = data.md5
 
         if startDate.elapsedTimeInMilliseconds > 10 {
-            Log4swift[Self.self].info("url: '\(self.path)' md5: '\(rv)' from: '\(logicalSize.decimalFormatted) bytes' in: '\(startDate.elapsedTime)'")
+            Log4swift[Self.self].info("url: '\(self.path)' md5: '\(rv)' from: '\(logicalSize.decimalFormatted) bytes' elapsedTime: '\(startDate.elapsedTime)'")
         }
         return rv
     }
@@ -101,7 +101,7 @@ public extension URL {
             guard !Task.isCancelled // preemptive cancellation
             else {
                 wasCancelled = true
-                // Log4swift[Self.self].info("url: '\(self.path)' was cancelled in: '\(startDate.elapsedTime)'")
+                // Log4swift[Self.self].info("url: '\(self.path)' was cancelled elapsedTime: '\(startDate.elapsedTime)'")
                 return false
             }
 
@@ -119,7 +119,7 @@ public extension URL {
         let rv = data.md5
 
         if startDate.elapsedTimeInMilliseconds > 125 {
-            Log4swift[Self.self].info("url: '\(self.path)' sha256: '\(rv)' from: '\(logicalSize.decimalFormatted) bytes' in: '\(startDate.elapsedTime)'")
+            Log4swift[Self.self].info("url: '\(self.path)' sha256: '\(rv)' from: '\(logicalSize.decimalFormatted) bytes' elapsedTime: '\(startDate.elapsedTime)'")
         }
         return rv
     }
