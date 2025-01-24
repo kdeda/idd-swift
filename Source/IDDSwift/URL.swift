@@ -182,10 +182,15 @@ public extension URL {
     // will fail for unreadable urls
     //
     var isVolume: Bool {
-        return (try? self.resourceValues(forKeys: [.isVolumeKey]))?
+        let rv = (try? self.resourceValues(forKeys: [.isVolumeKey]))?
             .isVolume ?? false
+
+        //  if self.path.hasPrefix("/System/Volumes") {
+        //      Log4swift[Self.self].info("path: '\(self.path)' rv: '\(rv)'")
+        //  }
+        return rv
     }
-    
+
 #if os(macOS)
     var fileSystemInfo: (fileSystemType: String, isRemovable: Bool) {
         var isLocalMount: Bool = false
@@ -785,8 +790,10 @@ public extension URL {
     
     func removeLock() {
         do {
-            try FileManager.default.removeItem(at: self)
-            URL.logger.info("removed database lock: '\(self.path)'")
+            if FileManager.default.fileExists(atPath: self.path) {
+                try FileManager.default.removeItem(at: self)
+                URL.logger.info("removed database lock: '\(self.path)'")
+            }
         } catch {
             URL.logger.error("failed to remove database lock: '\(self.path)'")
             URL.logger.error("error: '\(error)'")
@@ -836,7 +843,42 @@ public extension URL {
         return []
 #endif
     }
+
+    /**
+     Will return an array of strings that should be the components needed to append
+     to the receiver to make the destination.
+     If there is such a value it shall include the last component from the receiver
+
+     Given a
+     receiver (self)  /Users/kdeda/Documents/_WhatSize/_Test/FolderChanges
+     destination      /Users/kdeda/Documents/_WhatSize/_Test/FolderChanges/file1.txt
+     reminder         /file1.txt
+     Return           ["FolderChanges", "file1.txt"]
+     */
+    func components(to destination: URL) -> [String] {
+        let receiverPath = self.path
+        let destinationPath = destination.path
+
+        guard receiverPath.count < destinationPath.count
+        else {
+            /**
+             receiver     /Users/kdeda/Documents/_WhatSize/_Test/FolderChanges
+             destination  /Users/kdeda/Documents/_WhatSize/_Test/FolderChanges
+             or
+             destination  /Users/kdeda/Documents/_WhatSize/_Test
+
+             there are zero components to add to receiver to make up the longerURL
+             */
+            return []
+        }
+        let reminder = destinationPath.replacingOccurrences(of: receiverPath, with: "")
+        var components = reminder.components(separatedBy: "/").filter({ !$0.isEmpty })
+
+        components.insert(self.lastPathComponent, at: 0)
+        return components
+    }
 }
+
 //
 //extension URL: Identifiable {
 //     public var id: String {

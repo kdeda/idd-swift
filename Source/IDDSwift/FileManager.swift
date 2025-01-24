@@ -31,9 +31,10 @@ public extension FileManager {
         do {
             if pathURL.fileExist {
                 try FileManager.default.removeItem(at: pathURL)
+                Log4swift[Self.self].info("filePath: '\(pathURL.path)'")
             }
         } catch {
-            Log4swift[Self.self].error("failed to remove: '\(pathURL.path)'")
+            Log4swift[Self.self].error("filePath: '\(pathURL.path)'")
             Log4swift[Self.self].error("error: '\(error.localizedDescription)'")
             return false
         }
