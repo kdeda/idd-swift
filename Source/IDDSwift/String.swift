@@ -190,9 +190,9 @@ public extension String {
     }
 
     // the assumption is that self is a child of parentPath
-    // ie: self == /Users/kdeda/Documents/Personal/Contracts/BenChute/LargeWhatSizeTest
-    // ie: parentPath == /Users/kdeda/Documents
-    // will return ../Personal/Contracts/BenChute/LargeWhatSizeTest
+    // ie: self == `/Users/kdeda/Documents/Personal/Contracts/BenChute/LargeWhatSizeTest`
+    // ie: parentPath == `/Users/kdeda/Documents`
+    // will return `Personal/Contracts/BenChute/LargeWhatSizeTest`
     // if not will return self
     //
     // will remove new lines or other weird control chars from string
@@ -204,7 +204,7 @@ public extension String {
             if filePath.count > parentPath.count {
                 let startIndex = filePath.index(filePath.startIndex, offsetBy: parentPath.count + 1)
                 
-                return "../" + String(filePath[startIndex...])
+                return String(filePath[startIndex...])
             }
         }
         return filePath

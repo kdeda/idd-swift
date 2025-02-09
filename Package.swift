@@ -17,7 +17,7 @@ let package = Package(
     ],
     dependencies: [
         // .package(name: "idd-log4-swift", path: "../idd-log4-swift"),
-        .package(url: "https://github.com/kdeda/idd-log4-swift.git", "2.1.16" ..< "3.0.0"),
+        .package(url: "https://github.com/kdeda/idd-log4-swift.git", "2.2.0" ..< "3.0.0"),
         .package(url: "https://github.com/kdeda/idd-zstd-swift.git", "2.0.1" ..< "3.0.0"),
         .package(url: "https://github.com/apple/swift-crypto.git", from: "3.9.1")
     ],
