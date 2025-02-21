@@ -188,16 +188,20 @@ public extension FileManager {
                 let count = Int(getmntinfo(&statfs, 0))
 
                 func charPointerToString(_ pointer: UnsafePointer<Int8>) -> String {
-                    return String(cString: UnsafeRawPointer(pointer).assumingMemoryBound(to: CChar.self))
+                    String(cString: UnsafeRawPointer(pointer).assumingMemoryBound(to: CChar.self))
                 }
 
                 if let volumesArray = statfs, count > 0 {
                     return (0..<count).map { (index) -> String in
                         var volume = volumesArray[index]
-                        let mountTo = charPointerToString(&volume.f_mntonname.0)
-                        //    let mountFrom = charPointerToString(&volume.f_mntfromname.0)
-                        //    let fileSystemType = charPointerToString(&volume.f_fstypename.0)
-                        return mountTo
+                        let mountPath = charPointerToString(&volume.f_mntonname.0)
+
+                        //  let fileSystemID = volume.f_fsid.val.0
+                        //  let mountFrom = charPointerToString(&volume.f_mntfromname.0)
+                        //  let fileSystemType = charPointerToString(&volume.f_fstypename.0)
+                        //
+                        //  Log4swift[Self.self].info("device: '\(mountFrom)' type: '\(fileSystemType)' fileSystemID: '\(fileSystemID)' mountPath: '\(mountPath)'")
+                        return mountPath
                     }
                     .sorted(by: >)
                 }

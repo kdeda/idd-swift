@@ -11,7 +11,7 @@ import Log4swift
 
 fileprivate struct Defaults {
     /**
-     Be ware this is not UTC, which might be perfectly fine.
+     Beware this is not UTC, which might be perfectly fine.
      Its default timeZone is the device’s local time zone.
      */
     static let defaultFormatter: DateFormatter = {
