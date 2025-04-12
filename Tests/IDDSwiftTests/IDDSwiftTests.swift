@@ -159,12 +159,30 @@ final class IDDSwiftTests: XCTestCase {
 
     func testSH256() async {
 #if os(macOS)
-        let url = URL(fileURLWithPath: "/Users/kdeda/Desktop/Packages/WhatSize_8.0.8/WhatSize.tgz")
+        let url = URL(fileURLWithPath: "/Users/kdeda/Desktop/Packages/WhatSize_8.2.1/WhatSize.pkg")
         let sha256 = url.sha256
 
         XCTAssertEqual(sha256, "DADF281E1F4141B5-5A23014632-9522057CE976-F3F5B9D2D369-68B0AF513EC086")
         Log4swift[Self.self].info("Completed")
         Log4swift[Self.self].info("-----")
+#endif
+    }
+
+    func test_expandingTilde() async {
+#if os(macOS)
+        let finalPath = "/Users/kdeda/Desktop/Packages/WhatSize_8.2.1/WhatSize.pkg"
+        let url1 = URL(fileURLWithPath: "/Users/kdeda/Desktop/Packages/WhatSize_8.2.1/WhatSize.pkg")
+        let correct1 = url1.expandingTilde
+        XCTAssertEqual(url1.path,            finalPath)
+        XCTAssertEqual(correct1?.path ?? "", finalPath)
+
+        let url2 = URL(fileURLWithPath: "~/Desktop/Packages/WhatSize_8.2.1/WhatSize.pkg")
+        let correct2 = url2.expandingTilde
+        XCTAssertEqual(correct2?.path ?? "", finalPath)
+
+        let url3 = URL(fileURLWithPath: "/~/Desktop/Packages/WhatSize_8.2.1/WhatSize.pkg")
+        let correct3 = url3.expandingTilde
+        XCTAssertEqual(correct3?.path ?? "", finalPath)
 #endif
     }
 }
