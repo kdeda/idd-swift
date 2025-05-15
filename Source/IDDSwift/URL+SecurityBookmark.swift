@@ -24,7 +24,7 @@ public extension URL {
             let securityBookmarkKey = self.securityBookmarkKey
             var rv = false
             
-            URL.logger.info("key: '\(securityBookmarkKey)'")
+            Log4swift[Self.self].info("key: '\(securityBookmarkKey)'")
             if let bookmarkData = UserDefaults.standard.data(forKey: securityBookmarkKey) {
                 var isStale = false
 
@@ -33,20 +33,20 @@ public extension URL {
                     
                     if url == self {
                         if isStale {
-                            URL.logger.error("stale bookmark: '\(securityBookmarkKey)'")
+                            Log4swift[Self.self].error("stale bookmark: '\(securityBookmarkKey)'")
                         } else {
                             if url.startAccessingSecurityScopedResource() {
                                 rv = true
                             } else {
-                                URL.logger.error("could not access: '\(securityBookmarkKey)'")
+                                Log4swift[Self.self].error("could not access: '\(securityBookmarkKey)'")
                             }
                         }
                     }
                 } catch {
-                    URL.logger.error("error: '\(error.localizedDescription)'")
+                    Log4swift[Self.self].error("error: '\(error.localizedDescription)'")
                 }
             }
-            URL.logger.info("value: '\(rv)' path: '\(self.path)'")
+            Log4swift[Self.self].info("value: '\(rv)' path: '\(self.path)'")
             return rv
         }
         set {
@@ -58,11 +58,11 @@ public extension URL {
                     let bookmarkData = try self.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
                     UserDefaults.standard.set(bookmarkData, forKey: securityBookmarkKey)
                 } catch {
-                    URL.logger.error("error: '\(error.localizedDescription)'")
+                    Log4swift[Self.self].error("error: '\(error.localizedDescription)'")
                 }
             }
             UserDefaults.standard.synchronize()
-            URL.logger.info("value: '\(newValue)' path: '\(self.path)'")
+            Log4swift[Self.self].info("value: '\(newValue)' path: '\(self.path)'")
         }
     }
 
@@ -76,7 +76,7 @@ public extension URL {
     func requestSecurityBookmark() -> Bool {
         // this is old Objective-Swift code that should be lifted into the UI layer
         //
-        URL.logger.error("NOOP")
+        Log4swift[Self.self].error("NOOP")
         return false
 
 //        let format = "As part of Apple's sandboxing policy we need permission to access the folder '%@'\n\n" +

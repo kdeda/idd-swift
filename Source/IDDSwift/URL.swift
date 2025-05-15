@@ -16,7 +16,7 @@ import FoundationNetworking
 #endif
 
 public extension URL {
-    static let logger = Log4swift[Self.self]
+    static let empty = URL.init(string: "file://")!
 
     /**
      A URL identifying the user's home directory, typically in `/Users`.
@@ -74,7 +74,7 @@ public extension URL {
                  unless the mounted volumes are not readable
                  or we do not have proper full disk access
                  */
-                URL.logger.error("unreadable volume: '\(self.path)'")
+                Log4swift[Self.self].error("unreadable volume: '\(self.path)'")
                 /**
                  Make sure to double check the full disk access.
                  In very rare cases apple's FDA gerts confused, a reboot or a slight click on the checkbutton helps
@@ -92,13 +92,13 @@ public extension URL {
         // of course if we are not mounted the following will fail as well
         //
         if let rv = (try? realURL.resourceValues(forKeys: [.volumeURLForRemountingKey]))?.volumeURLForRemounting {
-            URL.logger.error(".volumeUUIDStringKey failed, will default to the md5 hash for: '\(rv.absoluteString)'")
+            Log4swift[Self.self].error(".volumeUUIDStringKey failed, will default to the md5 hash for: '\(rv.absoluteString)'")
             return rv.absoluteString.md5
         }
         
         // WTF
         //
-        URL.logger.error(".volumeUUIDStringKey and .volumeURLForRemountingKey failed, will default to the md5 hash for: '\(self.path)'")
+        Log4swift[Self.self].error(".volumeUUIDStringKey and .volumeURLForRemountingKey failed, will default to the md5 hash for: '\(self.path)'")
         return self.path.md5
     }
     
@@ -109,9 +109,7 @@ public extension URL {
         var rv: Int64 = 0
         
         // logger.info("cleanedRow: '\(cleanedRow_)'")
-        if URL.logger.isDebug {
-            URL.logger.debug("tokens: '\(tokens.joined(separator: "', '"))'");
-        }
+        Log4swift[Self.self].debug("tokens: '\(tokens.joined(separator: "', '"))'");
         if tokens.count == 2 {
             var size = Double(tokens[0]) ?? 0.0
             let multiplier = tokens[1]
@@ -215,11 +213,11 @@ public extension URL {
             if fileSystemType == "fusefs" {
                 isFuse = true
             } else if fileSystemType == "smbfs" {
-                URL.logger.error("path: '\(self.path)' fileSystemType: '\(fileSystemType)' will be slow in performance")
+                Log4swift[Self.self].error("path: '\(self.path)' fileSystemType: '\(fileSystemType)' will be slow in performance")
             } else if fileSystemType == "msdos" {
-                // URL.logger.error("path: '\(self.path)' fileSystemType: '\(fileSystemType)'")
+                // Log4swift[Self.self].error("path: '\(self.path)' fileSystemType: '\(fileSystemType)'")
             } else if fileSystemType == "exfat" {
-                // URL.logger.error("path: '\(self.path)' fileSystemType: '\(fileSystemType)'")
+                // Log4swift[Self.self].error("path: '\(self.path)' fileSystemType: '\(fileSystemType)'")
             } else if fileSystemType == "mtmfs" {
                 // this is actually an nfs mount of the .MobileBackups
                 //
@@ -231,14 +229,14 @@ public extension URL {
         
         if statfs((self.path as NSString).fileSystemRepresentation, &fileStat) != 0 {
             let errorString = String(utf8String: strerror(errno)) ?? "Unknown error code"
-            URL.logger.error("error: '\(errorString)' filePath: '\(self.path)'")
+            Log4swift[Self.self].error("error: '\(errorString)' filePath: '\(self.path)'")
         } else {
             if (fileStat.f_flags & UInt32(MNT_LOCAL)) == UInt32(MNT_LOCAL) {
                 isLocalMount = true
             }
         }
         
-        URL.logger.info("path: '\(self.path)' isLocalMount: '\(isLocalMount)' isRemovable: '\(isRemovable)' isUnmountable: '\(isUnmountable)' isMobileBackups: '\(isMobileBackups)' isFuse: '\(isFuse)' description: '\(description ?? "unknown")' type: '\(type ?? "unknown")'")
+        Log4swift[Self.self].info("path: '\(self.path)' isLocalMount: '\(isLocalMount)' isRemovable: '\(isRemovable)' isUnmountable: '\(isUnmountable)' isMobileBackups: '\(isMobileBackups)' isFuse: '\(isFuse)' description: '\(description ?? "unknown")' type: '\(type ?? "unknown")'")
         return (fileSystemType: fileSystemType, isRemovable: isRemovable.boolValue)
     }
 #endif
@@ -267,9 +265,9 @@ public extension URL {
         repeat {
             if realURL.isVolume && volumeUUID == realURL._volumeUUID(mountedVolumes) {
                 if realURL.path == self.path {
-                    URL.logger.debug("rv: '\(realURL.path)'")
+                    Log4swift[Self.self].debug("rv: '\(realURL.path)'")
                 } else {
-                    URL.logger.debug("rv: '\(realURL.path)' from: '\(self.path)'")
+                    Log4swift[Self.self].debug("rv: '\(realURL.path)' from: '\(self.path)'")
                 }
                 return realURL
             } else if !mountedVolumes.contains(realURL.path) {
@@ -281,7 +279,7 @@ public extension URL {
         
         // we should not get here ...
         //
-        URL.logger.error("failed to fetch volume url for path: '\(self.path)'")
+        Log4swift[Self.self].error("failed to fetch volume url for path: '\(self.path)'")
         return URL.init(fileURLWithPath: "/Volumes").appendingPathComponent("\(UUID.init().uuidString).iddAppKit")
     }
     
@@ -321,7 +319,7 @@ public extension URL {
         let path = self.path
         
         if pathComponents.firstIndex(of: ".Trashes") != nil {
-            URL.logger.info("volumeTrash: '\(path)'")
+            Log4swift[Self.self].info("volumeTrash: '\(path)'")
             return true
         }
         
@@ -330,7 +328,7 @@ public extension URL {
             let userHome = NSHomeDirectoryForUser(userName) ?? "/User/UnknownUserHome"
             
             if path.hasPrefix(userHome) {
-                URL.logger.info("userTrash: '\(path)'")
+                Log4swift[Self.self].info("userTrash: '\(path)'")
                 return true
             }
         }
@@ -384,8 +382,8 @@ public extension URL {
                 newAttributes[FileAttributeKey.modificationDate] = newValue
                 try FileManager.default.setAttributes(newAttributes, ofItemAtPath: self.path)
             } catch {
-                URL.logger.error("error: '\(error.localizedDescription)'")
-                URL.logger.error("filePath: '\(self.path)'")
+                Log4swift[Self.self].error("error: '\(error.localizedDescription)'")
+                Log4swift[Self.self].error("filePath: '\(self.path)'")
             }
         }
     }
@@ -409,7 +407,7 @@ public extension URL {
             let errorString = "Error: '\(errno)'"
 #endif
 
-            URL.logger.error("error: '\(errorString)' filePath: '\(self.path)'")
+            Log4swift[Self.self].error("error: '\(errorString)' filePath: '\(self.path)'")
         } else {
 #if os(macOS)
             return fileStat.st_ino
@@ -465,7 +463,7 @@ public extension URL {
                 return rv
             }
         } catch {
-            URL.logger.error("error: '\(error.localizedDescription)'")
+            Log4swift[Self.self].error("error: '\(error.localizedDescription)'")
         }
         
         return -1
@@ -515,7 +513,7 @@ public extension URL {
     func chown(to ownerAccountName: String, recursive recurseToChildren: Bool) -> Bool {
         var rv = false
         
-        URL.logger.info("path: '\(self.path)'")
+        Log4swift[Self.self].info("path: '\(self.path)'")
         do {
             let newAttributes: [FileAttributeKey: Any] = {
                 var rv = [FileAttributeKey: Any]()
@@ -536,8 +534,8 @@ public extension URL {
             }
             rv = true
         } catch let error as NSError {
-            URL.logger.error("error: '\(error)'")
-            URL.logger.error("rootPath: '\(self.path)'")
+            Log4swift[Self.self].error("error: '\(error)'")
+            Log4swift[Self.self].error("rootPath: '\(self.path)'")
         }
         return rv
     }
@@ -550,10 +548,10 @@ public extension URL {
             var newAttributes_ = newAttributes
             
             newAttributes_[FileAttributeKey.posixPermissions] = self.isDirectory ? 0o777 : 0o666
-            URL.logger.info("modifiedAttributes: '\(newAttributes_)'")
-            URL.logger.info("path: '\(self.path)'")
-            //            if URL.logger.isDebug {
-            //                URL.logger.info("path: '\(self.path)'")
+            Log4swift[Self.self].info("modifiedAttributes: '\(newAttributes_)'")
+            Log4swift[Self.self].info("path: '\(self.path)'")
+            //            if Log4swift[Self.self].isDebug {
+            //                Log4swift[Self.self].info("path: '\(self.path)'")
             //            }
             try FileManager.default.setAttributes(newAttributes_, ofItemAtPath: self.path)
             if recurseToChildren && self.isDirectory {
@@ -566,8 +564,8 @@ public extension URL {
             }
             rv = true
         } catch let error as NSError {
-            URL.logger.error("error: '\(error)'")
-            URL.logger.error("rootPath: '\(self.path)'")
+            Log4swift[Self.self].error("error: '\(error)'")
+            Log4swift[Self.self].error("rootPath: '\(self.path)'")
         }
         return rv
     }
@@ -620,12 +618,12 @@ public extension URL {
             if !self.fileExist {
                 // we will get here if we run in user space
                 //
-                URL.logger.error("path: '\(self.path)' is missing ...")
+                Log4swift[Self.self].error("path: '\(self.path)' is missing ...")
             } else if !self.isReadable {
                 // we will get here if we run in user space
                 //
                 let details = (getuid() != 0) ? "this happens when we are running in user space" : "and you are running as root, hum ..."
-                URL.logger.error("path: '\(self.path)' is not readable: '\(details)'")
+                Log4swift[Self.self].error("path: '\(self.path)' is not readable: '\(details)'")
             } else {
                 var encoding: String.Encoding = .utf8
                 let fileContent = try String.init(contentsOf: self, usedEncoding: &encoding)
@@ -642,10 +640,10 @@ public extension URL {
                     return _sizeFrom(backupLog: sizeString)
                 }
                 rv = sizes.reduce(0, +)
-                URL.logger.info("path: '\(self.path)' withSize: '\(rv)'")
+                Log4swift[Self.self].info("path: '\(self.path)' withSize: '\(rv)'")
             }
         } catch {
-            URL.logger.error("error: '\(error.localizedDescription)'")
+            Log4swift[Self.self].error("error: '\(error.localizedDescription)'")
         }
 #endif
         return rv
@@ -694,7 +692,7 @@ public extension URL {
         let data: Data = await withCheckedContinuation { continuation in
             URLSession.shared.dataTask(with: request) { data, _, _ in
                 guard let data = data else {
-                    URL.logger.error("url: '\(self)'")
+                    Log4swift[Self.self].error("url: '\(self)'")
                     continuation.resume(returning: Data())
                     return
                 }
@@ -708,14 +706,14 @@ public extension URL {
         //     let (data, response) = try await URLSession.shared.data(for: request)
         //     guard (response as? HTTPURLResponse)?.statusCode == 200
         //     else {
-        //         URL.logger.error("url: '\(self)'")
+        //         Log4swift[Self.self].error("url: '\(self)'")
         //         // throw ServerError.emailServerError
         //         return ""
         //     }
         //     return String(data: data, encoding: .utf8) ?? ""
         // } catch {
-        //     URL.logger.error("url: '\(self)'")
-        //     URL.logger.error("error: '\(error)'")
+        //     Log4swift[Self.self].error("url: '\(self)'")
+        //     Log4swift[Self.self].error("error: '\(error)'")
         // }
         // return ""
     }
@@ -726,8 +724,8 @@ public extension URL {
             try NSWorkspace.shared.unmountAndEjectDevice(at: self)
             return true
         } catch let error as NSError {
-            URL.logger.error("error: '\(error)'")
-            URL.logger.error("rootPath: '\(self.path)'")
+            Log4swift[Self.self].error("error: '\(error)'")
+            Log4swift[Self.self].error("rootPath: '\(self.path)'")
         }
 #endif
         return false
@@ -781,10 +779,10 @@ public extension URL {
     func createLock() {
         do {
             try "".write(to: self, atomically: true, encoding: .ascii)
-            URL.logger.info("created database lock: '\(self.path)'")
+            Log4swift[Self.self].info("created database lock: '\(self.path)'")
         } catch {
-            URL.logger.error("failed to create database lock: '\(self.path)'")
-            URL.logger.error("error: '\(error)'")
+            Log4swift[Self.self].error("failed to create database lock: '\(self.path)'")
+            Log4swift[Self.self].error("error: '\(error)'")
         }
     }
     
@@ -792,11 +790,11 @@ public extension URL {
         do {
             if FileManager.default.fileExists(atPath: self.path) {
                 try FileManager.default.removeItem(at: self)
-                URL.logger.info("removed database lock: '\(self.path)'")
+                Log4swift[Self.self].info("removed database lock: '\(self.path)'")
             }
         } catch {
-            URL.logger.error("failed to remove database lock: '\(self.path)'")
-            URL.logger.error("error: '\(error)'")
+            Log4swift[Self.self].error("failed to remove database lock: '\(self.path)'")
+            Log4swift[Self.self].error("error: '\(error)'")
         }
     }
     
@@ -815,18 +813,18 @@ public extension URL {
             if !self.fileExist {
                 // create an empty file
                 try Data().write(to: self)
-                URL.logger.info("created: '\(self.path)'")
+                Log4swift[Self.self].info("created: '\(self.path)'")
             }
             let fileHandle = try FileHandle(forWritingTo: self)
 
             fileHandle.seekToEndOfFile()
             fileHandle.write(data)
             if startDate.elapsedTimeInMilliseconds > 10.0 {
-                URL.logger.info("appended: '\(data.count) bytes' to: '\(self.path)' elapsedTime: '\(startDate.elapsedTime)'")
+                Log4swift[Self.self].info("appended: '\(data.count) bytes' to: '\(self.path)' elapsedTime: '\(startDate.elapsedTime)'")
             }
             try fileHandle.close()
         } catch {
-            URL.logger.error("error: '\(error.localizedDescription)' filePath: '\(self.path)'")
+            Log4swift[Self.self].error("error: '\(error.localizedDescription)' filePath: '\(self.path)'")
         }
     }
     
@@ -839,7 +837,7 @@ public extension URL {
             options: .producesRelativePathURLs
         )) ?? []
 #else
-        URL.logger.error("error: NOOP for non macOS platforms")
+        Log4swift[Self.self].error("error: NOOP for non macOS platforms")
         return []
 #endif
     }
@@ -909,12 +907,12 @@ public extension Array where Element == URL {
                     )
                     if children.isEmpty {
                         if FileManager.default.removeItemIfExist(at: folderURL) {
-                            URL.logger.info("'\(folderURL.path)'")
+                            Log4swift[Self.self].info("'\(folderURL.path)'")
                             parents.append(folderURL.deletingLastPathComponent())
                         }
                     }
                 } catch {
-                    URL.logger.error("error: '\(error.localizedDescription)'")
+                    Log4swift[Self.self].error("error: '\(error.localizedDescription)'")
                 }
             }
         }
@@ -933,7 +931,7 @@ public extension Array where Element == URL {
                 if let filePath = fileURL.path.removingPercentEncoding {
                     partialResult.insert(filePath)
                 } else {
-                    URL.logger.error("bad URL: '\(fileURL)'")
+                    Log4swift[Self.self].error("bad URL: '\(fileURL)'")
                 }
             }
             .map(URL.init(fileURLWithPath:))

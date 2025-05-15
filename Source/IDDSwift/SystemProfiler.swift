@@ -11,10 +11,50 @@
 import Foundation
 import Log4swift
 
+extension URL {
+    nonisolated(unsafe)
+    private static var fetchedVolumes = [String: Bool]()
+    private static let lock = NSRecursiveLock()
+
+    public var isSSD: Bool {
+        Self.lock.withLock {
+            let volumeUUID = self.volumeUUID
+            if let existing = Self.fetchedVolumes[volumeUUID] {
+                return existing
+            }
+
+            //    // not giving us disk info
+            //    let diskInfo = IOService.diskInfo(url: rootNode.fileURL.volumeURL)
+            //    Log4swift[Self.self].info("diskInfo: '\(diskInfo)'")
+
+            let newValue = {
+                let storage = SystemProfiler.shared.storageData
+                // Log4swift[Self.self].info("storage: '\(storage)'")
+                let items = storage.flatMap(\.items)
+
+                items.forEach {
+                    Log4swift[Self.self].debug("item: '\($0)'")
+                }
+                if let ourItem = items.filter({ $0.volumeUUID == volumeUUID }).first {
+                    Log4swift[Self.self].info("storage: '\(ourItem)'")
+
+                    if let physicalDrive = ourItem.physicalDrive {
+                        Log4swift[Self.self].info("storage: '\(physicalDrive)'")
+                    }
+                    return ourItem.isSSD
+                }
+                return false
+            }()
+
+            Self.fetchedVolumes[volumeUUID] = newValue
+            return newValue
+        }
+    }
+}
+
 public struct SystemProfiler: Sendable {
     public static let shared = SystemProfiler()
     public static let profilerURL = URL(fileURLWithPath: "/usr/sbin/system_profiler")
-    public static let logger = Log4swift[Self.self]
 
     public var storageData: [SystemProfiler.StorageData] {
         let xml = Process.stdString(taskURL: SystemProfiler.profilerURL, arguments: ["-xml", "SPStorageDataType"], timeOut: 5.0)
@@ -23,32 +63,32 @@ public struct SystemProfiler: Sendable {
             let decoder = PropertyListDecoder()
             let data = xml.data(using: .utf8) ?? Data()
             let rv = try decoder.decode([StorageData].self, from: data)
-            
+
             // test
-//            let volumeIDs = rv.flatMap(\.items).map(\.volumeUUID)
-//
-//            volumeIDs.forEach { (volumeID) in
-//                if let item = rv.volumeInfo(volumeID) {
-//                    SystemProfiler.logger.error("item: '\(item)'")
-//                }
-//            }
+            //  let volumeIDs = rv.flatMap(\.items).map(\.volumeUUID)
+            //
+            //  volumeIDs.forEach { (volumeID) in
+            //      if let item = rv.volumeInfo(volumeID) {
+            //          Log4swift[Self.self].error("item: '\(item)'")
+            //      }
+            //  }
             return rv
         } catch let error {
-            SystemProfiler.logger.error("xml: '\(xml)'")
-            SystemProfiler.logger.error("error: '\(error)'")
+            Log4swift[Self.self].error("xml: '\(xml)'")
+            Log4swift[Self.self].error("error: '\(error)'")
         }
         return [StorageData]()
     }
 }
 
 extension SystemProfiler.Item {
-    var isSSD: Bool {
-        physicalDrive.mediumType == "ssd"
+    public var isSSD: Bool {
+        (physicalDrive.map { $0.mediumType == "ssd" }) ?? false
     }
 }
 
 extension Array where Element == SystemProfiler.StorageData {
-    func volumeInfo(_ volumeID: String) -> SystemProfiler.Item? {
+    public func volumeInfo(_ volumeID: String) -> SystemProfiler.Item? {
         let items = self.flatMap(\.items)
         return items.first { (storageData) -> Bool in
             storageData.volumeUUID == volumeID
@@ -64,15 +104,15 @@ extension SystemProfiler {
     
     // MARK: - SystemProfilerElement
     public struct StorageData: Codable {
-        var spCommandLineArguments: [String]
-        var spCompletionInterval, spResponseTime: Double
-        var dataType: String
-        var items: [Item]
-        var parentDataType: String
-        var properties: Properties
-        var timeStamp: Date
-        var versionInfo: VersionInfo
-        
+        public var spCommandLineArguments: [String]
+        public var spCompletionInterval, spResponseTime: Double
+        public var dataType: String
+        public var items: [Item]
+        public var parentDataType: String
+        public var properties: Properties
+        public var timeStamp: Date
+        public var versionInfo: VersionInfo
+
         enum CodingKeys: String, CodingKey {
             case spCommandLineArguments = "_SPCommandLineArguments"
             case spCompletionInterval = "_SPCompletionInterval"
@@ -87,14 +127,14 @@ extension SystemProfiler {
     }
     
     // MARK: - Item
-    struct Item: Codable {
-        var name, bsdName, fileSystem: String
-        var freeSpaceInBytes: Int
-        var ignoreOwnership, mountPoint: String
-        var physicalDrive: PhysicalDrive
-        var sizeInBytes: Int
-        var volumeUUID, writable: String
-        
+    public struct Item: Codable {
+        public var name, bsdName, fileSystem: String
+        public var freeSpaceInBytes: Int
+        public var ignoreOwnership, mountPoint: String
+        public var physicalDrive: PhysicalDrive?
+        public var sizeInBytes: Int
+        public var volumeUUID, writable: String
+
         enum CodingKeys: String, CodingKey {
             case name = "_name"
             case bsdName = "bsd_name"
@@ -110,11 +150,12 @@ extension SystemProfiler {
     }
     
     // MARK: - PhysicalDrive
-    struct PhysicalDrive: Codable {
-        var deviceName, isInternalDisk, mediaName, mediumType: String
-        var partitionMapType, physicalDriveProtocol: String
-        var smartStatus: String?
-        
+    public struct PhysicalDrive: Codable {
+        public var deviceName, isInternalDisk, mediaName: String
+        public var partitionMapType, physicalDriveProtocol: String
+        public var mediumType: String?
+        public var smartStatus: String?
+
         enum CodingKeys: String, CodingKey {
             case deviceName = "device_name"
             case isInternalDisk = "is_internal_disk"
@@ -127,29 +168,29 @@ extension SystemProfiler {
     }
     
     // MARK: - Properties
-    struct Properties: Codable {
-        var name: Name
-        var bsdName: BSDName
-        var comAppleCorestorageLV: COMAppleCorestorageLV
-        var comAppleCorestorageLVBytesConverted: COMAppleCorestorage
-        var comAppleCorestorageLVConversionState, comAppleCorestorageLVEncrypted, comAppleCorestorageLVEncryptionType, comAppleCorestorageLVLocked: COMAppleCorestorageLV
-        var comAppleCorestorageLVRevertible, comAppleCorestorageLVUUID, comAppleCorestorageLvg: COMAppleCorestorageLV
-        var comAppleCorestorageLvgFreeSpace: COMAppleCorestorage
-        var comAppleCorestorageLvgName: COMAppleCorestorageLV
-        var comAppleCorestorageLvgSize: COMAppleCorestorage
-        var comAppleCorestorageLvgUUID, comAppleCorestoragePV: COMAppleCorestorageLV
-        var comAppleCorestoragePVSize: COMAppleCorestorage
-        var comAppleCorestoragePVStatus, comAppleCorestoragePVUUID, deviceName: COMAppleCorestorageLV
-        var fileSystem: BSDName
-        var freeSpaceInBytes: FreeSpaceInBytes
-        var ignoreOwnership, isInternalDisk, mediaName, mediumType: COMAppleCorestorageLV
-        var mountPoint: BSDName
-        var opticalMediaType, partitionMapType, propertiesProtocol: COMAppleCorestorageLV
-        var sizeInBytes: SizeInBytes
-        var smartStatus, volumeUUID: COMAppleCorestorageLV
-        var volumes: Volumes
-        var writable: COMAppleCorestorageLV
-        
+    public struct Properties: Codable {
+        public var name: Name
+        public var bsdName: BSDName
+        public var comAppleCorestorageLV: COMAppleCorestorageLV
+        public var comAppleCorestorageLVBytesConverted: COMAppleCorestorage
+        public var comAppleCorestorageLVConversionState, comAppleCorestorageLVEncrypted, comAppleCorestorageLVEncryptionType, comAppleCorestorageLVLocked: COMAppleCorestorageLV
+        public var comAppleCorestorageLVRevertible, comAppleCorestorageLVUUID, comAppleCorestorageLvg: COMAppleCorestorageLV
+        public var comAppleCorestorageLvgFreeSpace: COMAppleCorestorage
+        public var comAppleCorestorageLvgName: COMAppleCorestorageLV
+        public var comAppleCorestorageLvgSize: COMAppleCorestorage
+        public var comAppleCorestorageLvgUUID, comAppleCorestoragePV: COMAppleCorestorageLV
+        public var comAppleCorestoragePVSize: COMAppleCorestorage
+        public var comAppleCorestoragePVStatus, comAppleCorestoragePVUUID, deviceName: COMAppleCorestorageLV
+        public var fileSystem: BSDName
+        public var freeSpaceInBytes: FreeSpaceInBytes
+        public var ignoreOwnership, isInternalDisk, mediaName, mediumType: COMAppleCorestorageLV
+        public var mountPoint: BSDName
+        public var opticalMediaType, partitionMapType, propertiesProtocol: COMAppleCorestorageLV
+        public var sizeInBytes: SizeInBytes
+        public var smartStatus, volumeUUID: COMAppleCorestorageLV
+        public var volumes: Volumes
+        public var writable: COMAppleCorestorageLV
+
         enum CodingKeys: String, CodingKey {
             case name = "_name"
             case bsdName = "bsd_name"
@@ -189,10 +230,10 @@ extension SystemProfiler {
     }
     
     // MARK: - BSDName
-    struct BSDName: Codable {
-        var isColumn: Bool
-        var order: String
-        
+    public struct BSDName: Codable {
+        public var isColumn: Bool
+        public var order: String
+
         enum CodingKeys: String, CodingKey {
             case isColumn = "_isColumn"
             case order = "_order"
@@ -200,19 +241,19 @@ extension SystemProfiler {
     }
     
     // MARK: - COMAppleCorestorageLV
-    struct COMAppleCorestorageLV: Codable {
-        var order: String
-        
+    public struct COMAppleCorestorageLV: Codable {
+        public var order: String
+
         enum CodingKeys: String, CodingKey {
             case order = "_order"
         }
     }
     
     // MARK: - COMAppleCorestorage
-    struct COMAppleCorestorage: Codable {
-        var isByteSize: Bool
-        var order: String
-        
+    public struct COMAppleCorestorage: Codable {
+        public var isByteSize: Bool
+        public var order: String
+
         enum CodingKeys: String, CodingKey {
             case isByteSize = "_isByteSize"
             case order = "_order"
@@ -220,10 +261,10 @@ extension SystemProfiler {
     }
     
     // MARK: - FreeSpaceInBytes
-    struct FreeSpaceInBytes: Codable {
-        var isByteSize, isColumn: Bool
-        var order: String
-        
+    public struct FreeSpaceInBytes: Codable {
+        public var isByteSize, isColumn: Bool
+        public var order: String
+
         enum CodingKeys: String, CodingKey {
             case isByteSize = "_isByteSize"
             case isColumn = "_isColumn"
@@ -232,10 +273,10 @@ extension SystemProfiler {
     }
     
     // MARK: - Name
-    struct Name: Codable {
-        var isColumn, order: String
-        var suppressLocalization: Bool
-        
+    public struct Name: Codable {
+        public var isColumn, order: String
+        public var suppressLocalization: Bool
+
         enum CodingKeys: String, CodingKey {
             case isColumn = "_isColumn"
             case order = "_order"
@@ -244,11 +285,11 @@ extension SystemProfiler {
     }
     
     // MARK: - SizeInBytes
-    struct SizeInBytes: Codable {
-        var isByteSize: String
-        var isColumn: Bool
-        var order: String
-        
+    public struct SizeInBytes: Codable {
+        public var isByteSize: String
+        public var isColumn: Bool
+        public var order: String
+
         enum CodingKeys: String, CodingKey {
             case isByteSize = "_isByteSize"
             case isColumn = "_isColumn"
@@ -257,18 +298,18 @@ extension SystemProfiler {
     }
     
     // MARK: - Volumes
-    struct Volumes: Codable {
-        var detailLevel: String
-        
+    public struct Volumes: Codable {
+        public var detailLevel: String
+
         enum CodingKeys: String, CodingKey {
             case detailLevel = "_detailLevel"
         }
     }
     
     // MARK: - VersionInfo
-    struct VersionInfo: Codable {
-        var comAppleSystemProfilerSPStorageReporter: String
-        
+    public struct VersionInfo: Codable {
+        public var comAppleSystemProfilerSPStorageReporter: String
+
         enum CodingKeys: String, CodingKey {
             case comAppleSystemProfilerSPStorageReporter = "com.apple.SystemProfiler.SPStorageReporter"
         }

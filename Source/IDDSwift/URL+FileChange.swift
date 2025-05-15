@@ -71,28 +71,28 @@ fileprivate final class FileChangeListener: @unchecked Sendable {
         _ url: URL,
         eventHandler: @escaping (FileChange) -> Void
     ) throws {
-        URL.logger.info("path: '\(url.path)'")
-        
+        Log4swift[Self.self].info("path: '\(url.path)'")
+
         self.url = url
         self.eventHandler = eventHandler
         self.fileHandle = try FileHandle(forReadingFrom: url)
     }
     
     deinit {
-        URL.logger.info("path: '\(url.path)'")
+        Log4swift[Self.self].info("path: '\(url.path)'")
     }
     
     /// Open the url and listen for write events.
     /// A write event occurs when a subfolder or a file is added removed to the url we are monitoring
     /// If the url we are monitoring is removed we also receive a write event.
     public func start() -> Void {
-        URL.logger.info("path: '\(url.path)'")
-        
+        Log4swift[Self.self].info("path: '\(url.path)'")
+
         // start reading changes ...
         // and report initial state
         let newData = fileHandle.readDataToEndOfFile()
         fileHandle.seekToEndOfFile()
-        URL.logger.info("path: '\(url.path)' found: '\(newData.count) bytes'")
+        Log4swift[Self.self].info("path: '\(url.path)' found: '\(newData.count) bytes'")
         eventHandler(.started(newData))
         
         self.source = DispatchSource.makeFileSystemObjectSource(
@@ -108,7 +108,7 @@ fileprivate final class FileChangeListener: @unchecked Sendable {
             switch event {
             case .delete:
                 // the file was deleted
-                URL.logger.info("path: '\(strongSelf.url.path)' just got deleted'")
+                Log4swift[Self.self].info("path: '\(strongSelf.url.path)' just got deleted'")
                 strongSelf.eventHandler(.fileDeleted)
 
             case .extend:
@@ -116,7 +116,7 @@ fileprivate final class FileChangeListener: @unchecked Sendable {
                 let newData = strongSelf.fileHandle.readDataToEndOfFile()
                 strongSelf.eventHandler(.added(newData))
             default:
-                URL.logger.error("path: '\(strongSelf.url.path)' received unmanaged event: \(strongSelf.source.eventName)'")
+                Log4swift[Self.self].error("path: '\(strongSelf.url.path)' received unmanaged event: \(strongSelf.source.eventName)'")
             }
         }
         source.setCancelHandler { [weak self] in
