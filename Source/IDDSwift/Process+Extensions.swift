@@ -160,9 +160,6 @@ public extension Process {
                     .trimmingCharacters(in: CharacterSet.controlCharacters)  // remove last new line
 
                 logger.trace("stdout: \(logMessage)")
-                // for currentAppender in logger.appenders {
-                //     currentAppender.performLog(logMessage, level: .Info, info: LogInfoDictionary())
-                // }
             }
 #endif
         }
@@ -172,20 +169,46 @@ public extension Process {
 
             if logger.logLevel == .trace {
                 logger.trace("stderr: \(data.logMessage)")
-                // for currentAppender in logger.appenders {
-                //     currentAppender.performLog(logMessage, level: .Info, info: LogInfoDictionary())
-                // }
             }
 #endif
         }
 
         self.terminationHandler = { process in
+            // logger.info("\(command) terminated")
+
+#if os(macOS)
+            /**
+             May 10, 2025
+             We could be terminating really fast here with data still on the pipes.
+             If so grab em before return.
+             
+             We had seen this in the past but was able to reproduce it and fix it thanks to
+             ProcessTests.testHeavyProcessLoad
+             */
+            let stdout = standardOutputPipe.fileHandleForReading.availableData
+            if stdout.count > 0 {
+                let data = processData.append(stdout: stdout)
+                if logger.logLevel == .trace {
+                    logger.trace("\(command) standardOutputPipe: '\(stdout.count)'")
+                    logger.trace("stdout: \(data.logMessage)")
+                }
+            }
+
+            let stderr = standardErrorPipe.fileHandleForReading.availableData
+            if stderr.count > 0 {
+                let data = processData.append(stderr: stderr)
+                if logger.logLevel == .trace {
+                    logger.trace("\(command) standardErrorPipe: '\(stderr.count)'")
+                    logger.trace("stderr: \(data.logMessage)")
+                }
+            }
+#endif
+
             // we are called when the process is terminated, completed
             // we are called on a completely different thread here
             standardOutputPipe.fileHandleForReading.readabilityHandler = nil
             standardErrorPipe.fileHandleForReading.readabilityHandler = nil
             
-            // logger.info("\(command) terminated")
             semaphore.signal()
         }
 

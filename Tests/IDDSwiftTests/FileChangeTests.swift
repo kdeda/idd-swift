@@ -1,3 +1,11 @@
+//
+//  FileChangeTests.swift
+//  IDDSwift
+//
+//  Created by Klajd Deda on 6/4/23.
+//  Copyright (C) 1997-2025 id-design, inc. All rights reserved.
+//
+
 import XCTest
 import Log4swift
 import IDDSwift
