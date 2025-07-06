@@ -46,7 +46,10 @@ public extension URL {
         guard let index = components.firstIndex(where: { $0 == "~" })
         else {
             // no `~` found
-            return self
+            // make sure it is returned back as file:/// schema
+            // this should not be a problem, but it will catch those rare cases
+            // when some one creates a file url from string
+            return URL.init(fileURLWithPath: self.path)
         }
 
         (0 ... index).forEach { _ in
