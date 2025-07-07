@@ -34,7 +34,24 @@ public extension Data {
     }
 }
 
-#if os(macOS)
+fileprivate extension FileHandle {
+    static let bufferLength = 256 * 1024
+
+    func moreData(_ wasCancelled: inout Bool) -> Data? {
+        guard !Task.isCancelled // preemptive cancellation
+        else {
+            wasCancelled = true
+            // Log4swift[Self.self].info("url: '\(self.path)' was cancelled elapsedTime: '\(startDate.elapsedTime)'")
+            return .none
+        }
+
+        let nextChunk = self.readData(ofLength: Self.bufferLength)
+        guard !nextChunk.isEmpty
+        else { return .none }
+
+        return nextChunk
+    }
+}
 
 public extension URL {
     var md5: String {
@@ -48,25 +65,12 @@ public extension URL {
         else { return "" }
 
         let startDate = Date()
-        let bufferLength = 256 * 1024
-        var hasher = CryptoKit.Insecure.MD5()
+        var hasher = Insecure.MD5()
         var wasCancelled = false
 
-        while autoreleasepool(invoking: {
-            guard !Task.isCancelled // preemptive cancellation
-            else {
-                wasCancelled = true
-                // Log4swift[Self.self].info("url: '\(self.path)' was cancelled elapsedTime: '\(startDate.elapsedTime)'")
-                return false
-            }
-
-            let nextChunk = handle.readData(ofLength: bufferLength)
-            guard !nextChunk.isEmpty
-            else { return false }
-
+        while let nextChunk = handle.moreData(&wasCancelled) {
             hasher.update(data: nextChunk)
-            return true
-        }) { }
+        }
 
         guard !wasCancelled
         else { return "" }
@@ -93,25 +97,12 @@ public extension URL {
         else { return "" }
 
         let startDate = Date()
-        let bufferLength = 256 * 1024
         var hasher = SHA256()
         var wasCancelled = false
 
-        while autoreleasepool(invoking: {
-            guard !Task.isCancelled // preemptive cancellation
-            else {
-                wasCancelled = true
-                // Log4swift[Self.self].info("url: '\(self.path)' was cancelled elapsedTime: '\(startDate.elapsedTime)'")
-                return false
-            }
-
-            let nextChunk = handle.readData(ofLength: bufferLength)
-            guard !nextChunk.isEmpty
-            else { return false }
-            
+        while let nextChunk = handle.moreData(&wasCancelled) {
             hasher.update(data: nextChunk)
-            return true
-        }) { }
+        }
 
         guard !wasCancelled
         else { return "" }
@@ -124,4 +115,3 @@ public extension URL {
         return rv
     }
 }
-#endif

@@ -166,14 +166,14 @@ final class IDDSwiftTests: XCTestCase {
     }
 
     func testSH256() async {
-#if os(macOS)
         let url = URL(fileURLWithPath: "/Users/kdeda/Desktop/Packages/WhatSize_8.2.1/WhatSize.pkg")
+        let md5 = url.md5
         let sha256 = url.sha256
 
-        XCTAssertEqual(sha256, "DADF281E1F4141B5-5A23014632-9522057CE976-F3F5B9D2D369-68B0AF513EC086")
+        XCTAssertEqual(md5, "A2ED533D-D4D4-FB94-AFAA-9D7E61AE167B")
+        XCTAssertEqual(sha256, "D77AFA30-9E5E-39A8-0CDA-A157B763546A")
         Log4swift[Self.self].info("Completed")
         Log4swift[Self.self].info("-----")
-#endif
     }
 
     func test_expandingTilde() async {
