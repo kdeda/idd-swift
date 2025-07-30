@@ -17,19 +17,15 @@ extension URL {
         let volumeURL = self.volumeURL
 
         if let storageData = SystemProfiler.storageDataItems.first(where: { $0.mountPoint == volumeURL.path }) {
-            let mediumType = (storageData.physicalDrive.mediumType ?? "").lowercased()
-
             Log4swift[Self.self].debug("storageData: '\(storageData)'")
-            return mediumType == "ssd"
+            return storageData.physicalDrive.isSSD
         }
 
         let info = IOService.diskInfo(url: volumeURL)
         if let deviceModel = info["DADeviceModel"] as? String {
             if let storageData = SystemProfiler.storageDataItems.first(where: { $0.physicalDrive.deviceName == deviceModel }) {
-                let mediumType = (storageData.physicalDrive.mediumType ?? "").lowercased()
-
                 Log4swift[Self.self].debug("storageData: '\(storageData)'")
-                return mediumType == "ssd"
+                return storageData.physicalDrive.isSSD
             }
         }
 
@@ -99,6 +95,8 @@ public struct SystemProfiler: Sendable {
                     let rv = try decoder.decode(SPStorageDataType.self, from: data)
                     self.itemsNeedsRefetch = false
                     self.items = rv.SPStorageDataType
+                    Log4swift[Self.self].info("items.count: '\(self.items.count)'")
+                    Log4swift[Self.self].info("json: '\(json)'")
 
                     // test
                     //  let volumeIDs = rv.flatMap(\.items).map(\.volumeUUID)
@@ -192,10 +190,10 @@ extension SystemProfiler {
         public var deviceName: String
         public var isInternalDisk: String
         public var mediaName: String
-        public var mediumType: String?
+        public var mediumType: String
         public var partitionMapType: String
         public var physicalDriveProtocol: String
-        public var smartStatus: String?
+        public var smartStatus: String
 
         enum CodingKeys: String, CodingKey {
             case deviceName = "device_name"
@@ -205,6 +203,22 @@ extension SystemProfiler {
             case partitionMapType = "partition_map_type"
             case physicalDriveProtocol = "protocol"
             case smartStatus = "smart_status"
+        }
+
+        public var isSSD: Bool {
+            mediumType.lowercased() == "ssd"
+        }
+
+        public init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+
+            self.deviceName = try container.decodeIfPresent(String.self, forKey: .deviceName) ?? ""
+            self.isInternalDisk = try container.decodeIfPresent(String.self, forKey: .isInternalDisk) ?? ""
+            self.mediaName = try container.decodeIfPresent(String.self, forKey: .mediaName) ?? ""
+            self.mediumType = try container.decodeIfPresent(String.self, forKey: .mediumType) ?? ""
+            self.partitionMapType = try container.decodeIfPresent(String.self, forKey: .partitionMapType) ?? ""
+            self.physicalDriveProtocol = try container.decodeIfPresent(String.self, forKey: .physicalDriveProtocol) ?? ""
+            self.smartStatus = try container.decodeIfPresent(String.self, forKey: .smartStatus) ?? ""
         }
     }
 }
