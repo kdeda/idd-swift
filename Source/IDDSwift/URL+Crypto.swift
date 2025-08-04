@@ -37,24 +37,114 @@ public extension Data {
 fileprivate extension FileHandle {
     static let bufferLength = 256 * 1024
 
-    func moreData(_ wasCancelled: inout Bool) -> Data? {
+    func readData() -> Data? {
         guard !Task.isCancelled // preemptive cancellation
-        else {
-            wasCancelled = true
-            // Log4swift[Self.self].info("url: '\(self.path)' was cancelled elapsedTime: '\(startDate.elapsedTime)'")
-            return .none
-        }
-
-        let nextChunk = self.readData(ofLength: Self.bufferLength)
-        guard !nextChunk.isEmpty
         else { return .none }
 
+        guard let nextChunk = try? self.read(upToCount: Self.bufferLength)
+        else { return .none }
         return nextChunk
+    }
+
+    /**
+     Maximum chunk is FileHandle.bufferLength
+     Not really used but could be a cute addition to the FileHandle
+     */
+    var readDataStream: AsyncStream<Data> {
+        AsyncStream<Data> { continuation in
+            let task = Task.detached {
+                var bytesRead = 0
+
+                while !Task.isCancelled {
+                    if let nextChunk = try? self.read(upToCount: Self.bufferLength) {
+                        bytesRead += nextChunk.count
+                        continuation.yield(nextChunk)
+                    } else {
+                        break
+                    }
+                }
+
+                continuation.finish()
+            }
+
+            continuation.onTermination = { _ in
+                task.cancel()
+            }
+        }
     }
 }
 
 public extension URL {
+    /**
+     Generic, able to use any algorithm that conforms to HashFunction
+     upon failure or cancelation you get an empty Data
+     */
+    func calculateHash<Hasher: HashFunction>(_ hasher: Hasher) -> Data {
+        guard let handle = try? FileHandle(forReadingFrom: self)
+        else { return Data() }
+        defer {
+            handle.closeFile()
+        }
+        let logicalSize = self.logicalSize
+        guard logicalSize > 0
+        else { return Data() }
+
+        var hasher_ = hasher
+        while let nextChunk = handle.readData() {
+            hasher_.update(data: nextChunk)
+        }
+
+        guard !Task.isCancelled // preemptive cancellation
+        else { return Data() }
+
+        return Data(hasher_.finalize())
+    }
+
+    /**
+     Slow on the m2 ultra
+     */
     var md5: String {
+        let startDate = Date()
+        let rv = calculateHash(Insecure.MD5()).md5
+
+        if startDate.elapsedTimeInMilliseconds > 20 {
+            Log4swift[Self.self].info("url: '\(self.path)' md5: '\(rv)' from: '\(logicalSize.decimalFormatted) bytes' elapsedTime: '\(startDate.elapsedTime)'")
+        }
+        return rv
+    }
+
+    /**
+     A lot faster than the md5, like 3x on m2 ultra
+     */
+    var sha1: String {
+        let startDate = Date()
+        let rv = calculateHash(Insecure.SHA1()).md5
+
+        if startDate.elapsedTimeInMilliseconds > 20 {
+            Log4swift[Self.self].info("url: '\(self.path)' sha1: '\(rv)' from: '\(logicalSize.decimalFormatted) bytes' elapsedTime: '\(startDate.elapsedTime)'")
+        }
+        return rv
+    }
+
+    /**
+     A lot faster than the md5, like 3x on m2 ultra
+     */
+    var sha256: String {
+        let startDate = Date()
+        let rv = calculateHash(SHA256()).md5
+
+        if startDate.elapsedTimeInMilliseconds > 20 {
+            Log4swift[Self.self].info("url: '\(self.path)' sha256: '\(rv)' from: '\(logicalSize.decimalFormatted) bytes' elapsedTime: '\(startDate.elapsedTime)'")
+        }
+        return rv
+    }
+}
+
+/**
+Deprecated, not used
+ */
+public extension URL {
+    var md5_deprecated: String {
         guard let handle = try? FileHandle(forReadingFrom: self)
         else { return "" }
         defer {
@@ -66,13 +156,12 @@ public extension URL {
 
         let startDate = Date()
         var hasher = Insecure.MD5()
-        var wasCancelled = false
 
-        while let nextChunk = handle.moreData(&wasCancelled) {
+        while let nextChunk = handle.readData() {
             hasher.update(data: nextChunk)
         }
 
-        guard !wasCancelled
+        guard !Task.isCancelled // preemptive cancellation
         else { return "" }
         let data = Data(hasher.finalize())
         let rv = data.md5
@@ -86,7 +175,7 @@ public extension URL {
     /**
      A lot faster than the md5, like 4x on m2 ultra
      */
-    var sha256: String {
+    var sha256_deprecated: String {
         guard let handle = try? FileHandle(forReadingFrom: self)
         else { return "" }
         defer {
@@ -98,13 +187,12 @@ public extension URL {
 
         let startDate = Date()
         var hasher = SHA256()
-        var wasCancelled = false
 
-        while let nextChunk = handle.moreData(&wasCancelled) {
+        while let nextChunk = handle.readData() {
             hasher.update(data: nextChunk)
         }
 
-        guard !wasCancelled
+        guard !Task.isCancelled // preemptive cancellation
         else { return "" }
         let data = Data(hasher.finalize())
         let rv = data.md5
