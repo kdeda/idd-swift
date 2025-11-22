@@ -76,8 +76,15 @@ fileprivate extension FileHandle {
 
 public extension URL {
     /**
+     This func is async ready, it means that when you kill the task that this call was made form, this call will terminate asap
      Generic, able to use any algorithm that conforms to HashFunction
-     upon failure or cancelation you get an empty Data
+     upon failure or current task cancelation you will get an empty Data
+     
+     You can use it as such
+     ```
+     let url = URL() // assume this exists
+     let rv = url.calculateHash(SHA256()).md5
+     ```
      */
     func calculateHash<Hasher: HashFunction>(_ hasher: Hasher) -> Data {
         guard let handle = try? FileHandle(forReadingFrom: self)
@@ -101,26 +108,26 @@ public extension URL {
     }
 
     /**
-     Slow on the m2 ultra
+     Slow on apple silicon as of Xcode26
      */
     var md5: String {
         let startDate = Date()
         let rv = calculateHash(Insecure.MD5()).md5
 
-        if startDate.elapsedTimeInMilliseconds > 20 {
+        if startDate.elapsedTimeInMilliseconds > 50 {
             Log4swift[Self.self].info("url: '\(self.path)' md5: '\(rv)' from: '\(logicalSize.decimalFormatted) bytes' elapsedTime: '\(startDate.elapsedTime)'")
         }
         return rv
     }
 
     /**
-     A lot faster than the md5, like 3x on m2 ultra
+     A lot faster than the md5, like 3x on apple silicon
      */
     var sha1: String {
         let startDate = Date()
         let rv = calculateHash(Insecure.SHA1()).md5
 
-        if startDate.elapsedTimeInMilliseconds > 20 {
+        if startDate.elapsedTimeInMilliseconds > 50 {
             Log4swift[Self.self].info("url: '\(self.path)' sha1: '\(rv)' from: '\(logicalSize.decimalFormatted) bytes' elapsedTime: '\(startDate.elapsedTime)'")
         }
         return rv

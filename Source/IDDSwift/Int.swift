@@ -186,3 +186,110 @@ public extension UInt64 {
         return ComparisonResult.orderedAscending
     }
 }
+
+public enum Radix: Int {
+    case base10 = 10
+    case base16 = 16
+}
+
+public extension Int64 {
+    fileprivate static func parse(_ bytes: ArraySlice<UInt8>, _ radix: Radix = .base10) -> Self? {
+        guard !bytes.isEmpty
+        else { return nil }
+
+        var result: Int64 = 0
+        let radix_ = Int64(radix.rawValue)
+        var isNegative = false
+        // due to how memory is managed by this type (this is more like a pointer)
+        // the bytes.startIndex will not always be zero but say 49
+        var startIndex = bytes.startIndex
+        // bytes.count will represent the size, say 1
+        var begin = 0
+
+        // Check for sign
+        if bytes[startIndex] == 45 { // ASCII '-'
+            isNegative = true
+            startIndex += 1
+            begin = 1
+        } else if bytes[startIndex] == 43 { // ASCII '+'
+            startIndex += 1
+            begin = 1
+        }
+
+        //        // deda debug
+        //        bytes.enumerated().forEach { element in
+        //            Log4swift[Self.self].info("char['\(startIndex + element.offset)']")
+        //        }
+        // self.count will represent the size, say 1
+        for i in begin ..< bytes.count {
+            // we start at begin and than grab the char at startIndex or 49
+            let byte = bytes[startIndex + i]
+            var digit: Int64 = 0
+
+            // Check if it's a digit (ASCII '0' = 48, '9' = 57), (ASCII 'A' = 65, 'F' = 70), (ASCII 'a' = 97, 'f' = 102)
+            if (byte >= 48 && byte <= 57) { // (ASCII '0' = 48, '9' = 57)
+                digit = Int64(byte - 48)
+            }
+            else if (radix == .base16 && byte >= 65 && byte <= 70) { // (ASCII 'A' = 65, 'F' = 70)
+                digit = Int64(byte - 65 + 10)
+            }
+            else if (radix == .base16 && byte >= 97 && byte <= 102) { // (ASCII 'a' = 97, 'f' = 102)
+                digit = Int64(byte - 97 + 10)
+            }
+            else {
+                // Invalid character
+                // Do we want to see these ?
+                // this code can be used in high performance situations and we might not want to display these
+                Log4swift[Self.self].debug("invalid char[\(i)]: \(String(decoding: bytes, as: UTF8.self))")
+                return nil
+            }
+
+            result = result * radix_ + digit
+        }
+
+        //        let string = String(decoding: bytes, as: UTF8.self)
+        //        let expected = Int(string, radix: 16) ?? 0
+        //        if expected != result {
+        //            Log4swift[Self.self].error("string: '\(string)', intValue: '\(expected)', result: '\(result)'")
+        //        }
+        return isNegative ? -result : result
+    }
+
+    /**
+     For now only radix 10 is implemented
+     "3964" -> 3964
+     */
+    init?(_ bytes: ArraySlice<UInt8>, radix: Radix = .base10) {
+        guard let parsed = Int64.parse(bytes, radix)
+        else { return nil }
+
+        self = parsed
+    }
+
+    init?(_ bytes: [UInt8], radix: Radix = .base10) {
+        guard let parsed = Int64.parse(bytes.suffix(from: 0), radix)
+        else { return nil }
+
+        self = parsed
+    }
+}
+
+public extension Int {
+    /**
+     For now only radix 10 is implemented
+     "3964" -> 3964
+     */
+    init?(_ bytes: ArraySlice<UInt8>, radix: Radix = .base10) {
+        guard let parsed = Int64.parse(bytes, radix)
+        else { return nil }
+
+        self = Int(parsed)
+    }
+
+    init?(_ bytes: [UInt8], radix: Radix = .base10) {
+        guard let parsed = Int64.parse(bytes.suffix(from: 0), radix)
+        else { return nil }
+
+        self = Int(parsed)
+    }
+}

@@ -27,15 +27,21 @@ public extension Process {
      var and that is not lock protected ...
      */
     final class ProcessData: @unchecked Sendable {
-        private var stdout = Data()
-        private var stderr = Data()
+        public private(set) var stdout = Data()
+        public private(set) var stderr = Data()
         private let lock = NSRecursiveLock()
 
+        /**
+         In some rare times converting to utf8 fails, on those cases use the stdout directly
+         */
         public var stdOutString: String {
             let rv = String(data: stdout, encoding: .utf8) ?? "unknown"
             return rv.trimmingCharacters(in: CharacterSet.controlCharacters)  // remove last new line
         }
-        
+
+        /**
+         In some rare times converting to utf8 fails, on those cases use the stderr directly
+         */
         public var stdErrorString: String {
             let rv = String(data: stderr, encoding: .utf8) ?? "unknown"
             return rv.trimmingCharacters(in: CharacterSet.controlCharacters)  // remove last new line
@@ -269,6 +275,7 @@ public extension Process {
     
     /**
      Convenience
+     In some rare times converting to utf8 fails, on those cases use the processData directly
      */
     func stdString(
         timeOut timeOutInSeconds: Double = 0
@@ -288,6 +295,7 @@ public extension Process {
         self.currentDirectoryURL = to
         return self
     }
+
     /**
      Convenience
      */
