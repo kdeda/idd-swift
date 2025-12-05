@@ -135,7 +135,7 @@ extension URL {
                     
                     Log4swift[Self.self].info("[\(fileName)]  found: '\(rowCount.decimalFormatted) lines' in: '\(startDate.elapsedTime)'")
                     Log4swift[Self.self].dash("[\(fileName)]  found: '\(rowCount.decimalFormatted) lines' in: '\(startDate.elapsedTime)'")
-                    try? await Task.sleep(nanoseconds: NSEC_PER_MSEC * 1000)
+                    try? await Task.sleep(nanoseconds: .nanoseconds(milliseconds: 1000))
                 } catch {
                     Log4swift[Self.self].error("fileURL: '\(self.path)'")
                     Log4swift[Self.self].error("error: '\(error.localizedDescription)'")
