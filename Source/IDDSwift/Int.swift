@@ -193,6 +193,10 @@ public enum Radix: Int {
 }
 
 public extension Int64 {
+    private static let isDebug = {
+        Log4swift[Self.self].isDebug
+    }()
+    
     fileprivate static func parse(_ bytes: ArraySlice<UInt8>, _ radix: Radix = .base10) -> Self? {
         guard !bytes.isEmpty
         else { return nil }
@@ -240,7 +244,9 @@ public extension Int64 {
                 // Invalid character
                 // Do we want to see these ?
                 // this code can be used in high performance situations and we might not want to display these
-                Log4swift[Self.self].debug("invalid char[\(i)]: \(String(decoding: bytes, as: UTF8.self))")
+                if isDebug {
+                    Log4swift[Self.self].debug("invalid char[\(i)]: \(String(decoding: bytes, as: UTF8.self))")
+                }
                 return nil
             }
 
