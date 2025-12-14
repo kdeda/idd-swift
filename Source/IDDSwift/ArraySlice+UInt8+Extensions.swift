@@ -19,8 +19,12 @@ extension ArraySlice where Element == UInt8 {
     /**
      To debug add -Swift.ArraySlice<Swift.UInt8> D to the argument lines
      */
-    static let isDebugLog = Log4swift[Self.self].isDebug
-
+    static let isDebugLog = {
+        Log4swift[Self.self].isDebug
+    }()
+    static let isTraceLog = {
+        Log4swift[Self.self].isTrace
+    }()
     /**
      If includeLast is false it will return the reminder
      Otherwise it will return empty reminder
@@ -41,37 +45,46 @@ extension ArraySlice where Element == UInt8 {
         guard !self.isEmpty
         else { return ArraySlice<UInt8>() }
         
-        var currentIndex = startIndex
+        var currentIndex = self.startIndex
         var count = self.count
-        
-        if Self.isDebugLog {
-            Log4swift[Self.self].debug("starting: [\(String(0).leftPadding(to: 4)) ... \(String(count).leftPadding(to: 4))] string: '\(String(decoding: self, as: UTF8.self))'")
-        }
-        for (offset_, byte) in self.enumerated() {
-            let offset = startIndex + offset_
-            
-            //  if debug {
-            //      Log4swift[Self.self].info("consumed: [\(String(offset).leftPadding(to: 4))] char: '\(String(decoding: [byte], as: UTF8.self))'")
-            //  }
-            if byte == separator {
-                let lineData = self[currentIndex ..< offset]
-                
-                if Self.isDebugLog {
-                    Log4swift[Self.self].debug("consumed: [\(String(currentIndex).leftPadding(to: 4)) ... \(String(offset).leftPadding(to: 4))] left: '\(count.decimalFormatted) bytes' string: '\(String(decoding: lineData, as: UTF8.self))'")
-                }
-                currentIndex = offset
-                currentIndex += 1 // ignore the separator
-                count -= lineData.count
-                
-                if !lineData.isEmpty {
-                    handle(lineData)
+
+        //    if currentIndex > 0 {
+        //        Log4swift[Self.self].error("startIndex: [\(self.startIndex) ..< \(self.endIndex)] string: '\(String(decoding: self, as: UTF8.self))'")
+        //    }
+        //    if Self.isTraceLog {
+        //        Log4swift[Self.self].trace("startIndex: [\(self.startIndex) ..< \(self.endIndex)] string: '\(String(decoding: self, as: UTF8.self))'")
+        //    }
+
+        self.withUnsafeBufferPointer { buffer in
+            // ranges here go from zero to n
+            // No bounds checking here (your responsibility!)
+            var lastIndex = 0
+            for offset in 0 ..< buffer.count {
+                //    if Self.isTraceLog {
+                //        Log4swift[Self.self].trace("consumed: [\(String(offset).leftPadding(to: 4))] char: '\(String(decoding: [buffer[offset]], as: UTF8.self))'")
+                //    }
+                if buffer[offset] == separator {
+                    // but ranges here self, go from self.startIndex to self.endIndex
+                    let lineData = self[(self.startIndex + lastIndex) ..< (self.startIndex + offset)]
+
+                    //    if Self.isDebugLog {
+                    //        Log4swift[Self.self].debug("consumed: [\(String(currentIndex).leftPadding(to: 4)) ... \(String(offset).leftPadding(to: 4))] left: '\(count.decimalFormatted) bytes' string: '\(String(decoding: lineData, as: UTF8.self))'")
+                    //    }
+                    lastIndex = offset
+                    lastIndex += 1 // ignore the separator
+                    count -= lineData.count
+
+                    if !lineData.isEmpty {
+                        handle(lineData)
+                    }
                 }
             }
+            currentIndex = self.startIndex + lastIndex
         }
-        
-        if Self.isDebugLog {
-            Log4swift[Self.self].debug("reminder: [\(String(currentIndex).leftPadding(to: 4)) ... \(String(self.count).leftPadding(to: 4))], string: '\(String(decoding: suffix(from: currentIndex), as: UTF8.self))'")
-        }
+
+        //        if Self.isDebugLog {
+        //            Log4swift[Self.self].debug("reminder: [\(String(currentIndex).leftPadding(to: 4)) ... \(String(self.count).leftPadding(to: 4))], string: '\(String(decoding: suffix(from: currentIndex), as: UTF8.self))'")
+        //        }
         guard currentIndex < self.endIndex
         else { return ArraySlice<UInt8>() }
         if includeLast {
@@ -130,7 +143,7 @@ extension ArraySlice where Element == UInt8 {
         guard !self.isEmpty
         else { return [] }
         var rv = [ArraySlice<UInt8>]()
-        let debug = false
+        _ = false
         
         // ignore the return
         rv.reserveCapacity(16)
