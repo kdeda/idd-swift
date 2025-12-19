@@ -31,7 +31,16 @@ final class IntTests: XCTestCase {
         XCTAssert(expected == fastValue, "parsing: '\(string)' failed, expected: '\(expected)' parsed: '\(fastValue)'")
     }
 
+    func testIntOverflow() async {
+        let string = "ffffffffffffffff"
+        let data = string.data(using: .utf8) ?? Data()
+        let bytes = [UInt8](data)
+        let fastValue = Int(bytes, radix: .base16) ?? 0
+        let expected = 0
 
+        XCTAssert(expected == fastValue, "parsing: '\(string)' failed, expected: '\(expected)' parsed: '\(fastValue)'")
+    }
+    
     func testIntFromBytes() async {
         // known numbers
         validate(123, "000123", radix: .base10)

@@ -250,14 +250,24 @@ public extension Int64 {
                 return nil
             }
 
-            result = result * radix_ + digit
+            // we could overflow here, hence the safe operators
+            // if we do, the newValue will be a negative number
+            // in which case we return .none
+            let newValue = result &* radix_ &+ digit
+            //  Log4swift[Self.self].info("result: \(newValue.decimalFormatted)")
+            //  if newValue == 1152921504606846975 {
+            //      Log4swift[Self.self].info("result: \(newValue.decimalFormatted)")
+            //  }
+            guard newValue > 0
+            else { return nil }
+            result = newValue
         }
 
-        //        let string = String(decoding: bytes, as: UTF8.self)
-        //        let expected = Int(string, radix: 16) ?? 0
-        //        if expected != result {
-        //            Log4swift[Self.self].error("string: '\(string)', intValue: '\(expected)', result: '\(result)'")
-        //        }
+        // let string = String(decoding: bytes, as: UTF8.self)
+        // let expected = Int(string, radix: 16) ?? 0
+        // if expected != result {
+        //   Log4swift[Self.self].error("string: '\(string)', intValue: '\(expected)', result: '\(result)'")
+        // }
         return isNegative ? -result : result
     }
 
