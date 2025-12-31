@@ -3,7 +3,7 @@
 //  idd-swift
 //
 //  Created by Klajd Deda on 8/4/25.
-//  Copyright (C) 1997-2025 id-design, inc. All rights reserved.
+//  Copyright (C) 1997-2026 id-design, inc. All rights reserved.
 //
 
 import XCTest

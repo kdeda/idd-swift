@@ -3,7 +3,7 @@
 //  IDDSwift
 //
 //  Created by Klajd Deda on 4/3/24.
-//  Copyright (C) 1997-2025 id-design, inc. All rights reserved.
+//  Copyright (C) 1997-2026 id-design, inc. All rights reserved.
 //
 
 import Foundation
@@ -114,7 +114,7 @@ public extension URL {
         let startDate = Date()
         let rv = calculateHash(Insecure.MD5()).md5
 
-        if startDate.elapsedTimeInMilliseconds > 50 {
+        if startDate.elapsedTimeInMilliseconds > 100 {
             Log4swift[Self.self].info("url: '\(self.path)' md5: '\(rv)' from: '\(logicalSize.decimalFormatted) bytes' elapsedTime: '\(startDate.elapsedTime)'")
         }
         return rv
@@ -127,7 +127,7 @@ public extension URL {
         let startDate = Date()
         let rv = calculateHash(Insecure.SHA1()).md5
 
-        if startDate.elapsedTimeInMilliseconds > 50 {
+        if startDate.elapsedTimeInMilliseconds > 100 {
             Log4swift[Self.self].info("url: '\(self.path)' sha1: '\(rv)' from: '\(logicalSize.decimalFormatted) bytes' elapsedTime: '\(startDate.elapsedTime)'")
         }
         return rv
@@ -140,7 +140,7 @@ public extension URL {
         let startDate = Date()
         let rv = calculateHash(SHA256()).md5
 
-        if startDate.elapsedTimeInMilliseconds > 20 {
+        if startDate.elapsedTimeInMilliseconds > 100 {
             Log4swift[Self.self].info("url: '\(self.path)' sha256: '\(rv)' from: '\(logicalSize.decimalFormatted) bytes' elapsedTime: '\(startDate.elapsedTime)'")
         }
         return rv
@@ -173,7 +173,7 @@ public extension URL {
         let data = Data(hasher.finalize())
         let rv = data.md5
 
-        if startDate.elapsedTimeInMilliseconds > 10 {
+        if startDate.elapsedTimeInMilliseconds > 100 {
             Log4swift[Self.self].info("url: '\(self.path)' md5: '\(rv)' from: '\(logicalSize.decimalFormatted) bytes' elapsedTime: '\(startDate.elapsedTime)'")
         }
         return rv
@@ -204,7 +204,7 @@ public extension URL {
         let data = Data(hasher.finalize())
         let rv = data.md5
 
-        if startDate.elapsedTimeInMilliseconds > 125 {
+        if startDate.elapsedTimeInMilliseconds > 100 {
             Log4swift[Self.self].info("url: '\(self.path)' sha256: '\(rv)' from: '\(logicalSize.decimalFormatted) bytes' elapsedTime: '\(startDate.elapsedTime)'")
         }
         return rv

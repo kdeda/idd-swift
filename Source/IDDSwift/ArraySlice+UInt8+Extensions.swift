@@ -3,7 +3,7 @@
 //  IDDSwift
 //
 //  Created by Klajd Deda on 11/15/25.
-//  Copyright (C) 1997-2025 id-design, inc. All rights reserved.
+//  Copyright (C) 1997-2026 id-design, inc. All rights reserved.
 //
 
 import Foundation
@@ -25,6 +25,7 @@ extension ArraySlice where Element == UInt8 {
     static let isTraceLog = {
         Log4swift[Self.self].isTrace
     }()
+
     /**
      If includeLast is false it will return the reminder
      Otherwise it will return empty reminder
