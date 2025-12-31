@@ -189,6 +189,23 @@ public extension URL {
         return rv
     }
 
+    var fsTypeName: String? {
+        var fileStat = statfs()
+
+        guard statfs(self.path, &fileStat) >= 0
+        else {
+            Log4swift[Self.self].error("error: '\(errno.strerror)' filePath: '\(self.path)'")
+            return .none
+            // throw nsError(filePath: filename, errorMessage: "Cannot get filesystem info")
+        }
+
+        func charPointerToString(_ pointer: UnsafePointer<Int8>) -> String {
+            String(cString: UnsafeRawPointer(pointer).assumingMemoryBound(to: CChar.self))
+        }
+
+        return charPointerToString(&fileStat.f_fstypename.0)
+    }
+
 #if os(macOS)
     var fileSystemInfo: (fileSystemType: String, isRemovable: Bool) {
         var isLocalMount: Bool = false
@@ -225,11 +242,10 @@ public extension URL {
             }
         }
         
-        var fileStat : statfs = statfs()
+        var fileStat: statfs = statfs()
         
-        if statfs((self.path as NSString).fileSystemRepresentation, &fileStat) != 0 {
-            let errorString = String(utf8String: strerror(errno)) ?? "Unknown error code"
-            Log4swift[Self.self].error("error: '\(errorString)' filePath: '\(self.path)'")
+        if statfs(self.path, &fileStat) != 0 {
+            Log4swift[Self.self].error("error: '\(errno.strerror)' filePath: '\(self.path)'")
         } else {
             if (fileStat.f_flags & UInt32(MNT_LOCAL)) == UInt32(MNT_LOCAL) {
                 isLocalMount = true
@@ -398,11 +414,11 @@ public extension URL {
     // this will work
     //
     private var _fetchInodeUsingStat: UInt64 {
-        var fileStat : stat = stat()
+        var fileStat: stat = stat()
         
-        if stat((self.path as NSString).fileSystemRepresentation, &fileStat) != 0 {
+        if stat(self.path, &fileStat) != 0 {
 #if os(macOS)
-            let errorString = String(utf8String: strerror(errno)) ?? "Unknown error code"
+            let errorString = errno.strerror
 #else
             let errorString = "Error: '\(errno)'"
 #endif
@@ -496,6 +512,17 @@ public extension URL {
      This call will return the wrong value for resource fork files ..
      */
     var logicalSize: Int64 {
+        /**
+         reported windows issue
+         https://forums.swift.org/t/urk-resourcevalues-forkeys-filesizekey-value-too-large/83923/2
+         */
+#if os(Windows)
+        let attributes = try? FileManager.default.attributesOfItem(atPath: self.path)
+        if let fileSize = attributes?[FileAttributeKey.size] as? NSNumber {
+            return fileSize.int64Value
+        }
+        return 0
+#endif
         return Int64((try? self.resourceValues(forKeys: [.fileSizeKey]))?.fileSize ?? 0)
     }
     

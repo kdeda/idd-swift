@@ -1,0 +1,26 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "swift",
+			"args": [
+				"build",
+				"--product",
+				"URLReadLines",
+				"-Xlinker",
+				"-debug:dwarf"
+			],
+			"env": {},
+			"cwd": "c:\\Users\\kdeda\\Developer\\git.id-design.com\\spm\\idd-swift",
+			"disableTaskQueue": true,
+			"dontTriggerTestDiscovery": true,
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": [],
+			"label": "swift: Build Debug URLReadLines",
+			"detail": "swift build --product URLReadLines -Xlinker -debug:dwarf"
+		}
+	]
+}

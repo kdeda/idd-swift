@@ -89,10 +89,9 @@ extension URL {
                         lines.reserveCapacity(2048)
                         buffer = buffer.components(separatedBy: delimiter) { lineData in
                             rowCount += 1
-                            fileSize -= Int64(lineData.count)
                             if rowCount % 500_000 == 0 {
-                                let left = fileHandle.offsetInFile
-                                Log4swift[Self.self].info("[\(fileName)] parsed: '\(rowCount.decimalFormatted) lines' consumed: '\(left.decimalFormatted)' remining: '\(fileSize.decimalFormatted) bytes'")
+                                let left = (try? fileHandle.offset()) ?? 0
+                                Log4swift[Self.self].info("[\(fileName)] parsed: '\(rowCount.decimalFormatted) lines' consumed: '\(left.decimalFormatted)' remaining: '\(fileSize.decimalFormatted) bytes'")
                             }
                             
                             lines.append(lineData)
@@ -105,9 +104,15 @@ extension URL {
                         }
                         
                         let tmpData = fileHandle.readData(ofLength: bufferSize)
+                        fileSize -= Int64(tmpData.count)
                         if tmpData.count > 0 {
-                            // we hve to copy a few bytes here ArraySlice 
-                            buffer = ArraySlice<UInt8>(Data(buffer)) + ArraySlice<UInt8>(tmpData)
+                            // we have to copy a few bytes here
+                            //
+                            if buffer.isEmpty {
+                                buffer = ArraySlice<UInt8>(tmpData)
+                            } else {
+                                buffer.append(contentsOf: ArraySlice<UInt8>(tmpData))
+                            }
                         } else {
                             // EOF or read error.
                             atEof = true
@@ -115,7 +120,7 @@ extension URL {
                             // Buffer contains last line in file (not terminated by delimiter).
                             if !buffer.isEmpty {
                                 rowCount += 1
-                                Log4swift[Self.self].info("[\(fileName)] found: '\(buffer.count.decimalFormatted) bytes' remining: '0 bytes'")
+                                Log4swift[Self.self].info("[\(fileName)] found: '\(buffer.count.decimalFormatted) bytes' remaining: '0 bytes'")
                                 
                                 lines.append(buffer)
                                 if let fileHandle1 {

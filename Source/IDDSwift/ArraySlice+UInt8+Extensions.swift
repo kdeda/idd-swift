@@ -25,6 +25,7 @@ extension ArraySlice where Element == UInt8 {
     static let isTraceLog = {
         Log4swift[Self.self].isTrace
     }()
+
     /**
      If includeLast is false it will return the reminder
      Otherwise it will return empty reminder

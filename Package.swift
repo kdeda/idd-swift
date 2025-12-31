@@ -17,7 +17,7 @@ let package = Package(
     ],
     dependencies: [
         // .package(name: "idd-log4-swift", path: "../idd-log4-swift"),
-        .package(url: "https://github.com/kdeda/idd-log4-swift.git", "2.2.11" ..< "3.0.0"),
+        .package(url: "https://github.com/kdeda/idd-log4-swift.git", "2.2.12" ..< "3.0.0"),
         .package(url: "https://github.com/kdeda/idd-zstd-swift.git", "2.0.1" ..< "3.0.0"),
         .package(url: "https://github.com/apple/swift-crypto.git", from: "4.1.0"),
         .package(url: "https://github.com/pointfreeco/swift-custom-dump.git", from: "1.1.3")
@@ -31,6 +31,13 @@ let package = Package(
                 .product(name: "Crypto", package: "swift-crypto")
             ]
         ),
+        .executableTarget(
+            name: "URLReadLines",
+            dependencies: [
+                "IDDSwift",
+                .product(name: "Log4swift", package: "idd-log4-swift")
+            ]
+        ),
         .testTarget(
             name: "IDDSwiftTests",
             dependencies: [
@@ -40,6 +47,6 @@ let package = Package(
                 .product(name: "Crypto", package: "swift-crypto"),
                 .product(name: "CustomDump", package: "swift-custom-dump"),
             ]
-        )
-    ]
+        )    
+        ]
 )
