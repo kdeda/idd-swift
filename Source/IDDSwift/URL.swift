@@ -496,6 +496,17 @@ public extension URL {
      This call will return the wrong value for resource fork files ..
      */
     var logicalSize: Int64 {
+        /**
+         reported windows issue
+         https://forums.swift.org/t/urk-resourcevalues-forkeys-filesizekey-value-too-large/83923/2
+         */
+#if os(Windows)
+        let attributes = try? FileManager.default.attributesOfItem(atPath: self.path)
+        if let fileSize = attributes?[FileAttributeKey.size] as? NSNumber {
+            return fileSize.int64Value
+        }
+        return 0
+#endif
         return Int64((try? self.resourceValues(forKeys: [.fileSizeKey]))?.fileSize ?? 0)
     }
     

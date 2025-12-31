@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": ["-standardLog", "true"],
+            "cwd": "${workspaceFolder:idd-swift}",
+            "name": "Debug URLReadLines",
+            "target": "URLReadLines",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug URLReadLines"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:idd-swift}",
+            "name": "Release URLReadLines",
+            "target": "URLReadLines",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release URLReadLines"
+        }
+    ]
+}

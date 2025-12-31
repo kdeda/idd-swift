@@ -78,8 +78,8 @@ fileprivate struct RowItem: Equatable, Sendable {
 struct URLReadLinesTest {
     /**
      ```
-     find /Library/Backblaze.bzpkg/ -name "bz_done*0.dat" -exec cat {} \; >> /tmp/testBZDone.log
-     find /Library/Backblaze.bzpkg/ -name "bz_done*0.dat" -exec cat {} \; >> /tmp/testBZDone.log
+     find /Library/Backblaze.bzpkg/ -name "bz_done*0.dat" | sort | while read -r file; do cat $file >> /tmp/testBZDone.log; done
+     find /Library/Backblaze.bzpkg/ -name "bz_done_202512??_0.dat" | sort | while read -r file; do cat $file >> /tmp/testBZDone.log; done
      ```
      */
     @Test func testBzDoneReadLines() async {
@@ -88,9 +88,11 @@ struct URLReadLinesTest {
         let logRootURL = URL.home.appendingPathComponent("Library/Logs/IDDSwift")
         Log4swift.configureCompactSettings()
         Log4swift.configure(fileLogConfig: try? .init(logRootURL: logRootURL, appPrefix: "IDDSwift", appSuffix: "", daysToKeep: 30))
+        // Log4swift.configure(fileLogConfig: nil)
 
-        // find /Library/Backblaze.bzpkg/ -name "bz_done*0.dat" -exec cat {} \; >> /tmp/testBZDone.log
         let filePathURL = URL(fileURLWithPath: "/tmp/testBZDone.log")
+        // let filePathURL = URL(fileURLWithPath: "Z:\\Desktop\\testBZDone.log")
+        // let filePathURL = URL(fileURLWithPath: "Z:\\Desktop\\bz_done_20260101_0.dat")
         Log4swift[Self.self].info("-----")
         Log4swift[Self.self].info("Starting ...")
 
@@ -112,14 +114,44 @@ struct URLReadLinesTest {
                     })
                 }
 
-                Log4swift[Self.self].info("read: '\(totalBytes.decimalFormatted) bytes' '\(chunkCounts.decimalFormatted) chunks', in :'\(startDate.elapsedTime)'")
-                #expect(totalBytes == 4403010192)
+                Log4swift[Self.self].info("read: '\(totalBytes.decimalFormatted) bytes' '\(chunkCounts.decimalFormatted) chunks', in: '\(startDate.elapsedTime)'")
+                #expect(totalBytes == 121356935)
             }
         }
 
         Log4swift[Self.self].dash("benchMark")
 #endif
     }
+
+#if !os(macOS)
+#else   
+    @Test func testBzDoneReadLinesNonCopyable() {
+
+        let logRootURL = URL.home.appendingPathComponent("Library/Logs/IDDSwift")
+        Log4swift.configureCompactSettings()
+        Log4swift.configure(fileLogConfig: try? .init(logRootURL: logRootURL, appPrefix: "IDDSwift", appSuffix: "", daysToKeep: 30))
+        let startDate = Date()
+
+        do {
+            let file = try FileReader(fileURL: URL(fileURLWithPath: "/tmp/testBZDone.log"))
+            let nonCopyableLongest: String? = try file.findLongestNonCopyable()
+
+            /**
+             slightly better than the URL.readLines()
+             mainly because fgets() reads one line (\n terminated) at a time
+             ```
+             17:29:55.238 | <I main | .testBzDoneReadLinesNonCopyable()  |  read: '12,490,675 lines', in: '2.48 sec'
+             vs
+             18:01:56.017 | <I th.1 | .readLines(bufferSize:recreateParsedFile:)  |  [testBZDone.log]  found: '12,490,675 lines' in: '2.83 sec'
+             ```
+             */
+            Log4swift[Self.self].info("nonCopyableLongest: '\(nonCopyableLongest ?? "unknown")'")
+            Log4swift[Self.self].info("read: '\(file.rowCount.decimalFormatted) lines', in: '\(startDate.elapsedTime)'")
+        } catch {
+        }
+        Log4swift[Self.self].info("done")
+    }
+#endif
 
     /**
      When an ArraySlice is sliced, the idexes remain the old ones
@@ -163,7 +195,7 @@ struct URLReadLinesTest {
      Assert they are the same
      */
     @Test func testRowItemLines() async {
-#if os(iOS)
+#if !os(macOS)
 #else
         let logRootURL = URL.home.appendingPathComponent("Library/Logs/IDDSwift")
         Log4swift.configureCompactSettings()
