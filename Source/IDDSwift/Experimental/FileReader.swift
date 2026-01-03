@@ -20,7 +20,7 @@ final class FileReader {
     let file: UnsafeMutablePointer<FILE>
     let fileName: String
     let fileSize: Int64
-    internal(set) var rowCount: Int
+    var rowCount: Int
 
     init(fileURL: URL) throws {
         self.fileHandle = try FileHandle(forReadingFrom: fileURL)
