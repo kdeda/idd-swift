@@ -3,7 +3,7 @@
 //  WhatSize
 //
 //  Created by Klajd Deda on 3/26/24.
-//  Copyright (C) 1997-2025 id-design, inc. All rights reserved.
+//  Copyright (C) 1997-2026 id-design, inc. All rights reserved.
 //
 
 #if os(macOS)

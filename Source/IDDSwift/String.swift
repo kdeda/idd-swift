@@ -3,7 +3,7 @@
 //  IDDSwift
 //
 //  Created by Klajd Deda on 7/4/17.
-//  Copyright (C) 1997-2025 id-design, inc. All rights reserved.
+//  Copyright (C) 1997-2026 id-design, inc. All rights reserved.
 //  https://medium.com/@dcordero/a-different-way-to-deal-with-localized-strings-in-swift-3ea0da4cd143
 //
 
