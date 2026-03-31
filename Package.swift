@@ -19,8 +19,8 @@ let package = Package(
         // .package(name: "idd-log4-swift", path: "../idd-log4-swift"),
         .package(url: "https://github.com/kdeda/idd-log4-swift.git", "2.3.1" ..< "3.0.0"),
         .package(url: "https://github.com/kdeda/idd-zstd-swift.git", "2.0.1" ..< "3.0.0"),
-        .package(url: "https://github.com/apple/swift-crypto.git", from: "4.1.0"),
-        .package(url: "https://github.com/pointfreeco/swift-custom-dump.git", from: "1.1.3")
+        .package(url: "https://github.com/apple/swift-crypto.git", from: "4.3.0"),
+        .package(url: "https://github.com/pointfreeco/swift-custom-dump.git", from: "1.5.0")
     ],
     targets: [
         .target(

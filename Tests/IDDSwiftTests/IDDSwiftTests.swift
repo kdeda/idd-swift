@@ -36,7 +36,7 @@ final class IDDSwiftTests: XCTestCase {
      Creates the test file
      touch /tmp/test.log
      append to it
-     echo "`date` 123 this is cool" >> /tmp/test.log^C
+     echo "`date` 123 this is cool" >> /tmp/test.log
      echo "`date +"%Y-%m-%d %H:%M:%S"` magical shrums" >> /tmp/test.log
      echo "`date +"%Y-%m-%d %H:%M:%S"` magical shrums `uuidgen`" >> /tmp/test.log
      */

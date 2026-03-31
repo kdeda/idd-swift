@@ -71,7 +71,7 @@ fileprivate struct RowItem: Equatable, Sendable {
         self.rowAction = rowAction_ ?? ""
         
         let rowPath_ = String(data: (Data(columns[2])), encoding: .utf8)
-        self.rowPathURL = URL.init(filePath: rowPath_ ?? "/tmp/unknown_idd_file.txt")
+        self.rowPathURL = URL.init(fileURLWithPath: rowPath_ ?? "/tmp/unknown_idd_file.txt")
     }
 }
 

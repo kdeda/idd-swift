@@ -37,11 +37,11 @@ public extension Data {
 fileprivate extension FileHandle {
     static let bufferLength = 256 * 1024
 
-    func readData() -> Data? {
+    func readData(_ bufferLength: Int) -> Data? {
         guard !Task.isCancelled // preemptive cancellation
         else { return .none }
 
-        guard let nextChunk = try? self.read(upToCount: Self.bufferLength)
+        guard let nextChunk = try? self.read(upToCount: bufferLength)
         else { return .none }
         return nextChunk
     }
@@ -54,13 +54,20 @@ fileprivate extension FileHandle {
         AsyncStream<Data> { continuation in
             let task = Task.detached {
                 var bytesRead = 0
+                var endOfFile = false
 
-                while !Task.isCancelled {
-                    if let nextChunk = try? self.read(upToCount: Self.bufferLength) {
-                        bytesRead += nextChunk.count
-                        continuation.yield(nextChunk)
-                    } else {
-                        break
+                while !Task.isCancelled || !endOfFile {
+                    autoreleasepool {
+                        // release any temporary as soon as possible
+                        if let nextChunk = try? self.read(upToCount: Self.bufferLength),
+                           !nextChunk.isEmpty
+                        {
+                            bytesRead += nextChunk.count
+                            continuation.yield(nextChunk)
+                        }
+                        else {
+                            endOfFile = true
+                        }
                     }
                 }
 
@@ -97,8 +104,19 @@ public extension URL {
         else { return Data() }
 
         var hasher_ = hasher
-        while let nextChunk = handle.readData() {
-            hasher_.update(data: nextChunk)
+        var endOfFile = false
+        while !endOfFile {
+            autoreleasepool {
+                // release any temporary as soon as possible
+                if let nextChunk = handle.readData(FileHandle.bufferLength),
+                   !nextChunk.isEmpty
+                {
+                    hasher_.update(data: nextChunk)
+                }
+                else {
+                    endOfFile = true
+                }
+            }
         }
 
         guard !Task.isCancelled // preemptive cancellation
@@ -164,7 +182,7 @@ public extension URL {
         let startDate = Date()
         var hasher = Insecure.MD5()
 
-        while let nextChunk = handle.readData() {
+        while let nextChunk = handle.readData(FileHandle.bufferLength) {
             hasher.update(data: nextChunk)
         }
 
@@ -195,7 +213,7 @@ public extension URL {
         let startDate = Date()
         var hasher = SHA256()
 
-        while let nextChunk = handle.readData() {
+        while let nextChunk = handle.readData(FileHandle.bufferLength) {
             hasher.update(data: nextChunk)
         }
 
