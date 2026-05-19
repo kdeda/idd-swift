@@ -89,14 +89,44 @@ public struct SystemProfiler: Sendable {
                         let SPStorageDataType: [StorageData]
                     }
 
-                    Log4swift[Self.self].info("fetched: '\(json.count) bytes'")
+                    // print not more than once per hour
+                    let logJSON: Bool = {
+                        let oncePerHour: Bool = {
+                            let lastPrintedTimeInterval = UserDefaults.standard.integer(forKey: "SystemProfiler.lastPrinted.timeInterval")
+                            let seconds = Int(Date().timeIntervalSince1970)
+                            let secondsSince = seconds - lastPrintedTimeInterval
+                            if secondsSince > 60 * 60 {
+                                UserDefaults.standard.setValue(seconds, forKey: "SystemProfiler.lastPrinted.timeInterval")
+                                return true
+                            }
+                            return false;
+                        }()
+
+                        //  let dataChanged: Bool = {
+                        //      // the md5 will always change
+                        //      let md5 = json.md5
+                        //      let lastPrintedMD5 = UserDefaults.standard.string(forKey: "SystemProfiler.lastPrinted.md5") ?? ""
+                        //      if md5 != lastPrintedMD5 { // data changed ?
+                        //          UserDefaults.standard.setValue(md5, forKey: "SystemProfiler.lastPrinted.md5")
+                        //          return true
+                        //      }
+                        //      return false
+                        //  }()
+
+                        return oncePerHour // || dataChanged
+                    }()
+                    if logJSON {
+                        Log4swift[Self.self].info("fetched: '\(json.count) bytes'")
+                    }
                     let decoder = JSONDecoder()
                     let data = json.data(using: .utf8) ?? Data()
                     let rv = try decoder.decode(SPStorageDataType.self, from: data)
                     self.itemsNeedsRefetch = false
                     self.items = rv.SPStorageDataType
-                    Log4swift[Self.self].info("items.count: '\(self.items.count)'")
-                    Log4swift[Self.self].info("json: '\(json)'")
+                    if logJSON {
+                        Log4swift[Self.self].info("items.count: '\(self.items.count)'")
+                        Log4swift[Self.self].info("json: '\(json)'")
+                    }
 
                     // test
                     //  let volumeIDs = rv.flatMap(\.items).map(\.volumeUUID)

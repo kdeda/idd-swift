@@ -159,16 +159,34 @@ public extension FileManager {
     }
 
 #if os(macOS)
+    private func userInfo(_ notification: NSNotification) -> [String: String] {
+        guard let userInfo = notification.userInfo
+        else { return [String: String]() }
+
+        return userInfo.reduce(into: [String: String]()) { partialResult, nextItem in
+            let key = "\(nextItem.key)"
+            let value = "\(nextItem.value)"
+
+            partialResult[key] = value
+        }
+    }
+
     @objc private func didMountNotification(_ notification: NSNotification) {
         Self.lock.withLock {
-            Log4swift[Self.self].info("notification: '\(notification.userInfo ?? [AnyHashable: Any]())'")
+            let userInfo = userInfo(notification)
+
+            // Log4swift[Self.self].info("notification: '\(notification.userInfo ?? [AnyHashable: Any]())'")
+            Log4swift[Self.self].info("notification: '\(userInfo)'")
             Self.mountedVolumesLastFetchDate = Date.distantPast
         }
     }
     
     @objc private func didUnmountNotification(_ notification: NSNotification) {
         Self.lock.withLock {
-            Log4swift[Self.self].info("notification: '\(notification.userInfo ?? [AnyHashable: Any]())'")
+            let userInfo = userInfo(notification)
+
+            // Log4swift[Self.self].info("notification: '\(notification.userInfo ?? [AnyHashable: Any]())'")
+            Log4swift[Self.self].info("notification: '\(userInfo)'")
             Self.mountedVolumesLastFetchDate = Date.distantPast
         }
     }
