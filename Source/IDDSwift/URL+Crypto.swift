@@ -158,7 +158,7 @@ public extension URL {
         let startDate = Date()
         let rv = calculateHash(SHA256()).md5
 
-        if startDate.elapsedTimeInMilliseconds > 100 {
+        if startDate.elapsedTimeInMilliseconds > 1_000 {
             Log4swift[Self.self].info("url: '\(self.path)' sha256: '\(rv)' from: '\(logicalSize.decimalFormatted) bytes' elapsedTime: '\(startDate.elapsedTime)'")
         }
         return rv

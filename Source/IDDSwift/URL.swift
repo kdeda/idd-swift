@@ -535,7 +535,30 @@ public extension URL {
     var physicalSize: Int64 {
         return Int64((try? self.resourceValues(forKeys: [.fileAllocatedSizeKey]))?.fileAllocatedSize ?? 0)
     }
-    
+
+    /// Returns the logical and physical size of a file at the given URL.
+    var catalogSizeOfResourceFile: (logicalSize: Int64, physicalSize: Int64) {
+        guard self.isFileURL
+        else { return (0, 0) }
+
+        var fileStat = stat()
+
+        // Use the C API to fetch the file status
+        let result = withUnsafeFileSystemRepresentation { fsPath in
+            guard let fsPath = fsPath else { return Int32(-1) }
+            return stat(fsPath, &fileStat)
+        }
+
+        // stat returns 0 on success
+        guard result == 0
+        else { return (0, 0) }
+
+        let logicalSize = fileStat.st_size
+        let physicalSize = Int64(fileStat.st_blocks) * 512
+
+        return (logicalSize, physicalSize)
+    }
+
     @discardableResult
     func chown(to ownerAccountName: String, recursive recurseToChildren: Bool) -> Bool {
         var rv = false
@@ -828,7 +851,33 @@ public extension URL {
     var hasLock: Bool {
         self.fileExist
     }
-    
+
+    /**
+     Will reset the file to this data
+     Cool because this does not change the inodes as it preserves the file
+     */
+    func setData(data: Data) {
+        let startDate = Date()
+
+        do {
+            if !self.fileExist {
+                // create an empty file
+                try Data().write(to: self)
+                Log4swift[Self.self].info("created: '\(self.path)'")
+            }
+            let fileHandle = try FileHandle(forWritingTo: self)
+
+            fileHandle.truncateFile(atOffset: 0)
+            fileHandle.write(data)
+            if startDate.elapsedTimeInMilliseconds > 10.0 {
+                Log4swift[Self.self].info("appended: '\(data.count) bytes' to: '\(self.path)' elapsedTime: '\(startDate.elapsedTime)'")
+            }
+            try fileHandle.close()
+        } catch {
+            Log4swift[Self.self].error("error: '\(error.localizedDescription)' filePath: '\(self.path)'")
+        }
+    }
+
     /**
      Should very quickly append the data at the end of this url.
      Of course this is not thread safe, but you can make it so using the createLock/removeLock
