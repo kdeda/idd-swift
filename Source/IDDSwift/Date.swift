@@ -63,6 +63,16 @@ public extension Date {
     func date(shiftedByDays numberOfDays: Int) -> Date {
         Date(timeInterval: Double(numberOfDays * 24 * 3600), since: self)
     }
+
+    /**
+     Drop sub second precision.
+     */
+    var truncatedToSecond: Self {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: self)
+
+        return calendar.date(from: components) ?? self
+    }
 }
 
 public extension String {
