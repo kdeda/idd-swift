@@ -104,7 +104,10 @@ public extension Bundle {
         public let id: String
         public let name: String
         public let shortVersion: String
+        /// convenience, this is stored as string in the plist CFBundleVersion
+        /// but to automate software updates i have this default to an integer
         public let buildNumber: Int
+        public let bundleVersionString: String
         public let startDate: String
         public let creationDate: String
         public let creationDateLocalized: String
@@ -119,7 +122,8 @@ public extension Bundle {
              */
             name = Bundle.main[.localizedInfo, "CFBundleName", Bundle.main[.info, "CFBundleName", "myapp"]]
             shortVersion = Bundle.main[.info, "CFBundleShortVersionString", "1.0.1"]
-            buildNumber = Int(Bundle.main[.info, "CFBundleVersion", "1010"]) ?? 1010
+            buildNumber = Int(Bundle.main[.info, "CFBundleVersion", "1001"]) ?? 1001
+            bundleVersionString = Bundle.main[.info, "CFBundleVersion", "2026.04.01.1"]
             startDate = Date.init().string(withFormat: "MMMM dd, yyyy 'at' HH:mm a")
             let creationDate_ = Bundle.main.executableURL?.creationDate ?? Date.distantPast
             creationDate = creationDate_.string(withFormat: "MMMM dd, yyyy 'at' HH:mm a")
@@ -129,7 +133,7 @@ public extension Bundle {
         public var shortDescription: String {
             let rv = [
                 "\(name): '\(shortVersion)'",
-                "build: '\(buildNumber)'",
+                "build: '\(bundleVersionString)'",
                 "on: '\(creationDate)'",
                 "started: '\(startDate)'"
             ]

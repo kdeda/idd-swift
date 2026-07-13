@@ -98,7 +98,7 @@ public extension URL {
         
         // WTF
         //
-        Log4swift[Self.self].error(".volumeUUIDStringKey and .volumeURLForRemountingKey failed, will default to the md5 hash for: '\(self.path)'")
+        Log4swift[Self.self].errorOncePer(".volumeUUIDStringKey and .volumeURLForRemountingKey failed, will default to the md5 hash for: '\(self.path)'")
         return self.path.md5
     }
     
@@ -251,8 +251,8 @@ public extension URL {
                 isLocalMount = true
             }
         }
-        
-        Log4swift[Self.self].info("path: '\(self.path)' isLocalMount: '\(isLocalMount)' isRemovable: '\(isRemovable)' isUnmountable: '\(isUnmountable)' isMobileBackups: '\(isMobileBackups)' isFuse: '\(isFuse)' description: '\(description ?? "unknown")' type: '\(type ?? "unknown")'")
+
+        Log4swift[Self.self].infoOncePer("path: '\(self.path)' isLocalMount: '\(isLocalMount)' isRemovable: '\(isRemovable)' isUnmountable: '\(isUnmountable)' isMobileBackups: '\(isMobileBackups)' isFuse: '\(isFuse)' description: '\(description ?? "unknown")' type: '\(type ?? "unknown")'")
         return (fileSystemType: fileSystemType, isRemovable: isRemovable.boolValue)
     }
 #endif
