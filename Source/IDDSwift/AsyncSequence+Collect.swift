@@ -33,6 +33,7 @@ extension AsyncStream {
             func drain() async {
                 let batch = await buffer.popAll()
                 if !batch.isEmpty {
+                    // Log4swift[Self.self].info(function: "collect", "batch.count: '\(batch.count)'")
                     continuation.yield(batch)
                 }
             }
@@ -47,6 +48,7 @@ extension AsyncStream {
 
             let task2 = Task {
                 // pile them in the buffer as fast as you can
+                // Log4swift[Self.self].info(function: "collect", "started ...")
                 for await element in self {
                     await buffer.append(element)
                 }
