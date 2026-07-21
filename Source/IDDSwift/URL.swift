@@ -919,36 +919,53 @@ public extension URL {
     }
 
     /**
-     Will return an array of strings that should be the components needed to append
+     If the destination path has the recevier path as prefix this
+     will return an array of strings that should be the components needed to append
      to the receiver to make the destination.
-     If there is such a value it shall include the last component from the receiver
+     Slashes will not be included
+     If there is a non empty return value the first components should be the receiver lastPathComponent
 
-     Given a
-     receiver (self)  /Users/kdeda/Documents/_WhatSize/_Test/FolderChanges
-     destination      /Users/kdeda/Documents/_WhatSize/_Test/FolderChanges/file1.txt
-     reminder         /file1.txt
-     Return           ["FolderChanges", "file1.txt"]
+     self        = `/Users/kdeda/Documents/_WhatSize/_Test/FolderChanges`
+     destination = `/Users/kdeda/Documents/_WhatSize/_Test/FolderChanges/file1.txt`
+     return      = ["FolderChanges", "file1.txt"]
+
+     self        = `/`
+     destination = `/usr/share/zsh/5.9`
+     return      = ["usr", "share", "zsh", "5.9"]
+
+     self        = `/Users/kdeda/Documents/_WhatSize/_Test/FolderChanges`
+     destination = `/Users/kdeda/Documents/BackBlaze`
+     return      = ["FolderChanges", "file1.txt"]
      */
     func components(to destination: URL) -> [String] {
         let receiverPath = self.path
         let destinationPath = destination.path
 
-        guard receiverPath.count < destinationPath.count
+        guard destinationPath.hasPrefix(receiverPath)
         else {
             /**
-             receiver     /Users/kdeda/Documents/_WhatSize/_Test/FolderChanges
-             destination  /Users/kdeda/Documents/_WhatSize/_Test/FolderChanges
-             or
-             destination  /Users/kdeda/Documents/_WhatSize/_Test
-
-             there are zero components to add to receiver to make up the longerURL
+             receiver    = `/Users/kdeda/Documents/_WhatSize/_Test/FolderChanges`
+             destination = `/Users/kdeda/Documents/BackBlaze`
              */
             return []
         }
-        let reminder = destinationPath.replacingOccurrences(of: receiverPath, with: "")
-        var components = reminder.components(separatedBy: "/").filter({ !$0.isEmpty })
 
-        components.insert(self.lastPathComponent, at: 0)
+        let receiverComponents = self.pathComponents
+        let destinationComponents = destination.pathComponents
+        var components = destinationComponents.enumerated().compactMap { element in
+            // Log4swift[Self.self].error("destinationComponents[\(element.offset)] = \(element.element)")
+            guard receiverComponents.indices.contains(element.offset)
+            else { return element.element }
+            guard receiverComponents[element.offset] != element.element
+            else { return .none }
+
+            return element.element
+        }
+
+        let lastPathComponent = self.lastPathComponent
+        if !lastPathComponent.isEmpty && lastPathComponent != "/" {
+            components.insert(self.lastPathComponent, at: 0)
+        }
         return components
     }
 }
