@@ -35,7 +35,7 @@ public extension Data {
 }
 
 fileprivate extension FileHandle {
-    static let bufferLength = 256 * 1024
+    static let bufferLength = 512 * 1024 // 500kb at once
 
     func readData(_ bufferLength: Int) -> Data? {
         guard !Task.isCancelled // preemptive cancellation
@@ -82,26 +82,43 @@ fileprivate extension FileHandle {
 }
 
 public extension URL {
+    enum CalculateHashError: Error {
+        case emptyFile
+        case canceled
+    }
+
     /**
-     This func is async ready, it means that when you kill the task that this call was made form, this call will terminate asap
-     Generic, able to use any algorithm that conforms to HashFunction
-     upon failure or current task cancelation you will get an empty Data
-     
-     You can use it as such
+     Will read the bytes from the file represented by self using chunks of
+     FileHandle.bufferLength at a time and hash it according to hasher.
+     Will throw if you are trying to work on a file not in your user space.
+     Will throw if Task was canceled or file is empty.
+
+     Use it as such
      ```
-     let url = URL() // assume this exists
-     let rv = url.calculateHash(SHA256()).md5
+     let url = URL() // assume this is readable
+     let digest = try url.calculateHash(SHA256())
+     let sha256 = digest.compactMap { String(format: "%02x", $0) }.joined()
      ```
+     Co-operates in the Task cancelation, so it can early exit on large files.
      */
-    func calculateHash<Hasher: HashFunction>(_ hasher: Hasher) -> Data {
-        guard let handle = try? FileHandle(forReadingFrom: self)
-        else { return Data() }
+    func calculateHash<Hasher: HashFunction>(_ hasher: Hasher) throws -> Data {
+        //        guard self.isReadable
+        //        else {
+        //            let fileExist = self.fileExist
+        //
+        //            Log4swift[Self.self].error("fileExist: '\(fileExist)' filePath: '\(self.path)'")
+        //            throw CalculateHashError.emptyFile
+        //        }
+        let handle = try FileHandle(forReadingFrom: self)
         defer {
             handle.closeFile()
         }
+        
         let logicalSize = self.logicalSize
         guard logicalSize > 0
-        else { return Data() }
+        else {
+            throw CalculateHashError.emptyFile
+        }
 
         var hasher_ = hasher
         var endOfFile = false
@@ -120,7 +137,9 @@ public extension URL {
         }
 
         guard !Task.isCancelled // preemptive cancellation
-        else { return Data() }
+        else {
+            throw CalculateHashError.canceled
+        }
 
         return Data(hasher_.finalize())
     }
@@ -128,9 +147,16 @@ public extension URL {
     /**
      Slow on apple silicon as of Xcode26
      */
-    var md5: String {
+    var md5: String? {
         let startDate = Date()
-        let rv = calculateHash(Insecure.MD5()).md5
+        let rv: String? = {
+            do {
+                return try calculateHash(Insecure.MD5()).md5
+            } catch {
+                Log4swift[Self.self].error("error: '\(error)'")
+                return .none
+            }
+        }()
 
         if startDate.elapsedTimeInMilliseconds > 100 {
             Log4swift[Self.self].info("url: '\(self.path)' md5: '\(rv)' from: '\(logicalSize.decimalFormatted) bytes' elapsedTime: '\(startDate.elapsedTime)'")
@@ -141,12 +167,19 @@ public extension URL {
     /**
      A lot faster than the md5, like 3x on apple silicon
      */
-    var sha1: String {
+    var sha1: String? {
         let startDate = Date()
-        let rv = calculateHash(Insecure.SHA1()).md5
+        let rv: String? = {
+            do {
+                return try calculateHash(Insecure.SHA1()).md5
+            } catch {
+                Log4swift[Self.self].error("error: '\(error)'")
+                return .none
+            }
+        }()
 
         if startDate.elapsedTimeInMilliseconds > 100 {
-            Log4swift[Self.self].info("url: '\(self.path)' sha1: '\(rv)' from: '\(logicalSize.decimalFormatted) bytes' elapsedTime: '\(startDate.elapsedTime)'")
+            Log4swift[Self.self].info("url: '\(self.path)' sha1: '\(rv ?? "unknown")' from: '\(logicalSize.decimalFormatted) bytes' elapsedTime: '\(startDate.elapsedTime)'")
         }
         return rv
     }
@@ -154,9 +187,16 @@ public extension URL {
     /**
      A lot faster than the md5, like 3x on m2 ultra
      */
-    var sha256: String {
+    var sha256: String? {
         let startDate = Date()
-        let rv = calculateHash(SHA256()).md5
+        let rv: String? = {
+            do {
+                return try calculateHash(SHA256()).md5
+            } catch {
+                Log4swift[Self.self].error("error: '\(error)'")
+                return .none
+            }
+        }()
 
         if startDate.elapsedTimeInMilliseconds > 1_000 {
             Log4swift[Self.self].info("url: '\(self.path)' sha256: '\(rv)' from: '\(logicalSize.decimalFormatted) bytes' elapsedTime: '\(startDate.elapsedTime)'")
@@ -166,7 +206,7 @@ public extension URL {
 }
 
 /**
-Deprecated, not used
+ Deprecated, not used
  */
 public extension URL {
     var md5_deprecated: String {
