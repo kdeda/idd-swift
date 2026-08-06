@@ -138,7 +138,7 @@ public extension URL {
         defer {
             handle.closeFile()
         }
-        
+
         let logicalSize = self.logicalSize
         guard logicalSize > 0
         else {
@@ -169,21 +169,25 @@ public extension URL {
         return Data(hasher_.finalize())
     }
 
+    private func digestWithHasherNoThrow<Hasher: HashFunction>(_ hasher: Hasher) -> Data? {
+        do {
+            return try digestWithHasher(hasher)
+        } catch CalculateHashError.canceled {
+            return .none
+        } catch {
+            Log4swift[Self.self].error("error: '\(error)'")
+            return .none
+        }
+    }
+
     /**
      Slow on apple silicon as of Xcode26
      */
     var md5Digest: Data? {
         let startDate = Date()
-        let rv: Data? = {
-            do {
-                return try digestWithHasher(Insecure.MD5())
-            } catch {
-                Log4swift[Self.self].error("error: '\(error)'")
-                return .none
-            }
-        }()
+        let rv = digestWithHasherNoThrow(Insecure.MD5())
 
-        if let rv, startDate.elapsedTimeInMilliseconds > 100 {
+        if startDate.elapsedTimeInMilliseconds > 1_000 {
             Log4swift[Self.self].info("url: '\(self.path)' with: '\(logicalSize.decimalFormatted) bytes' completed in: '\(startDate.elapsedTime)'")
         }
         return rv
@@ -198,16 +202,9 @@ public extension URL {
      */
     var sha1Digest: Data? {
         let startDate = Date()
-        let rv: Data? = {
-            do {
-                return try digestWithHasher(Insecure.SHA1())
-            } catch {
-                Log4swift[Self.self].error("error: '\(error)'")
-                return .none
-            }
-        }()
+        let rv = digestWithHasherNoThrow(Insecure.SHA1())
 
-        if startDate.elapsedTimeInMilliseconds > 100 {
+        if startDate.elapsedTimeInMilliseconds > 1_000 {
             Log4swift[Self.self].info("url: '\(self.path)' with: '\(logicalSize.decimalFormatted) bytes' completed in: '\(startDate.elapsedTime)'")
         }
         return rv
@@ -222,16 +219,9 @@ public extension URL {
      */
     var sha256Digest: Data? {
         let startDate = Date()
-        let rv: Data? = {
-            do {
-                return try digestWithHasher(SHA256())
-            } catch {
-                Log4swift[Self.self].error("error: '\(error)'")
-                return .none
-            }
-        }()
+        let rv = digestWithHasherNoThrow(SHA256())
 
-        if let rv, startDate.elapsedTimeInMilliseconds > 1_000 {
+        if startDate.elapsedTimeInMilliseconds > 1_000 {
             Log4swift[Self.self].info("url: '\(self.path)' with: '\(logicalSize.decimalFormatted) bytes' completed in: '\(startDate.elapsedTime)'")
         }
         return rv
