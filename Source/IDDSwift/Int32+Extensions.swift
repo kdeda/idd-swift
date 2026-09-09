@@ -7,11 +7,24 @@
 //
 
 import Foundation
+#if canImport(Darwin)
 import Darwin
+#elseif canImport(Glibc)
+import Glibc
+#elseif canImport(ucrt)
+import ucrt
+#endif
 
 public extension Int32 {
     var strerror: String {
-        String(cString: Darwin.strerror(self))
+#if os(Windows)
+        var buffer = [Int8](repeating: 0, count: 256)
+        buffer.withUnsafeMutableBufferPointer { ptr in
+            _ = strerror_s(ptr.baseAddress, ptr.count, self)
+        }
+        return String(cString: buffer)
+#else
+        String(cString: Foundation.strerror(self))
+#endif
     }
 }
-

@@ -18,6 +18,14 @@ public extension Date {
         return rv
     }()
 
+    // positive number if some time has elapsed since now
+    //
+    static func elapsedTimeInMilliseconds(for closure: (()-> Swift.Void)) -> Double {
+        let startDate = Date.init()
+        closure()
+        return startDate.elapsedTimeInMilliseconds
+    }
+
     static func elapsedTime(for closure: (()-> Swift.Void)) -> String {
         let startDate = Date.init()
         closure()

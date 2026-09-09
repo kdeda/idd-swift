@@ -190,6 +190,7 @@ public extension URL {
     }
 
     var fsTypeName: String? {
+#if os(macOS)
         var fileStat = statfs()
 
         guard statfs(self.path, &fileStat) >= 0
@@ -204,6 +205,9 @@ public extension URL {
         }
 
         return charPointerToString(&fileStat.f_fstypename.0)
+#else
+        return .none
+#endif
     }
 
 #if os(macOS)
@@ -416,14 +420,8 @@ public extension URL {
     private var _fetchInodeUsingStat: UInt64 {
         var fileStat: stat = stat()
         
-        if stat(self.path, &fileStat) != 0 {
-#if os(macOS)
-            let errorString = errno.strerror
-#else
-            let errorString = "Error: '\(errno)'"
-#endif
-
-            Log4swift[Self.self].error("error: '\(errorString)' filePath: '\(self.path)'")
+        if stat(self.path, &fileStat) != 0 {            
+            Log4swift[Self.self].error("error: '\(errno.strerror)' filePath: '\(self.path)'")
         } else {
 #if os(macOS)
             return fileStat.st_ino
@@ -522,8 +520,9 @@ public extension URL {
             return fileSize.int64Value
         }
         return 0
-#endif
+#else
         return Int64((try? self.resourceValues(forKeys: [.fileSizeKey]))?.fileSize ?? 0)
+#endif
     }
     
     /**
@@ -541,6 +540,10 @@ public extension URL {
         guard self.isFileURL
         else { return (0, 0) }
 
+#if os(Windows)
+        // Windows stat does not report block counts, fall back to resource values
+        return (self.logicalSize, self.physicalSize)
+#else
         var fileStat = stat()
 
         // Use the C API to fetch the file status
@@ -553,10 +556,11 @@ public extension URL {
         guard result == 0
         else { return (0, 0) }
 
-        let logicalSize = fileStat.st_size
+        let logicalSize = Int64(fileStat.st_size)
         let physicalSize = Int64(fileStat.st_blocks) * 512
 
         return (logicalSize, physicalSize)
+#endif
     }
 
     @discardableResult

@@ -1,0 +1,69 @@
+{
+  "originHash" : "53b0fc77bf9de8a437990546631b03a15c47e50b465baf3ee50107a3310935ec",
+  "pins" : [
+    {
+      "identity" : "idd-log4-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kdeda/idd-log4-swift.git",
+      "state" : {
+        "revision" : "de53d3b1627641e9547b916aa0db806b57277fe6",
+        "version" : "2.3.3"
+      }
+    },
+    {
+      "identity" : "idd-zstd-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kdeda/idd-zstd-swift.git",
+      "state" : {
+        "revision" : "545d5ca750a1607195b878174ebfde23311ac8df",
+        "version" : "2.0.2"
+      }
+    },
+    {
+      "identity" : "swift-asn1",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-asn1.git",
+      "state" : {
+        "revision" : "a9a5efd40eaf558a2bcd48d64b1d1646be686008",
+        "version" : "1.7.1"
+      }
+    },
+    {
+      "identity" : "swift-crypto",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-crypto.git",
+      "state" : {
+        "revision" : "47d3869a7291f085c1fb9fb1e6d3b97a793f45c6",
+        "version" : "4.5.1"
+      }
+    },
+    {
+      "identity" : "swift-custom-dump",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-custom-dump.git",
+      "state" : {
+        "revision" : "a8cd6c976f335ed361dcecddb0dc39ebda51bc3e",
+        "version" : "1.6.1"
+      }
+    },
+    {
+      "identity" : "swift-log",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-log.git",
+      "state" : {
+        "revision" : "a878e7f8f46cfc0e1125e565b5c08e7d5272dc9a",
+        "version" : "1.14.0"
+      }
+    },
+    {
+      "identity" : "xctest-dynamic-overlay",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/xctest-dynamic-overlay",
+      "state" : {
+        "revision" : "8f6abcf4c8950e2679d5b2fee4ca284fd7c34886",
+        "version" : "1.11.0"
+      }
+    }
+  ],
+  "version" : 3
+}

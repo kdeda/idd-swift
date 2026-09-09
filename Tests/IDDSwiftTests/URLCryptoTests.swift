@@ -24,32 +24,32 @@ final class URLCryptoTests: XCTestCase {
     func testMD5() async {
 #if os(iOS)
 #else
-        let logFile = URL(fileURLWithPath: "/tmp/testMD5.log")
-        Log4swift[Self.self].info("-----")
-        Log4swift[Self.self].info("Starting ...")
-
-//        try? FileManager.default.removeItem(at: logFile)
-//        try? "".write(to: logFile, atomically: true, encoding: .utf8)
-//        logFile.appendUUIDs(1_000_000)
-
-        let md5_1 = logFile.md5_deprecated
-        let md5_2 = logFile.calculateHash(Insecure.MD5()).md5
-        XCTAssert(md5_1 == md5_2)
-        Log4swift[Self.self].info(" Insecure.MD5: '\(md5_2)'")
-
-        let sha1_2 = logFile.calculateHash(Insecure.SHA1()).md5
-        Log4swift[Self.self].info("Insecure.SHA1: '\(sha1_2)'")
-
-        let sha256_1 = logFile.sha256_deprecated
-        let sha256_2 = logFile.calculateHash(SHA256()).md5
-        Log4swift[Self.self].info("       SHA256: '\(sha256_2)'")
-
-        XCTAssert(sha256_1 == sha256_2)
-
-        // let logFile2 = URL(fileURLWithPath: "/Applications/Firefox.app/Contents/MacOS/XUL")
-        await logFile.benchMark(prefix: " Insecure.MD5", count: 100, { _ = logFile.calculateHash(Insecure.MD5()).md5 })
-        await logFile.benchMark(prefix: "Insecure.SHA1", count: 100, { _ = logFile.calculateHash(Insecure.SHA1()).md5 })
-        await logFile.benchMark(prefix: "       SHA256", count: 100, { _ = logFile.calculateHash(SHA256()).md5 })
+//        let logFile = URL(fileURLWithPath: "/tmp/testMD5.log")
+//        Log4swift[Self.self].info("-----")
+//        Log4swift[Self.self].info("Starting ...")
+//
+////        try? FileManager.default.removeItem(at: logFile)
+////        try? "".write(to: logFile, atomically: true, encoding: .utf8)
+////        logFile.appendUUIDs(1_000_000)
+//
+//        let md5_1 = logFile.md5_deprecated
+//        let md5_2 = logFile.calculateHash(Insecure.MD5()).md5
+//        XCTAssert(md5_1 == md5_2)
+//        Log4swift[Self.self].info(" Insecure.MD5: '\(md5_2)'")
+//
+//        let sha1_2 = logFile.calculateHash(Insecure.SHA1()).md5
+//        Log4swift[Self.self].info("Insecure.SHA1: '\(sha1_2)'")
+//
+//        let sha256_1 = logFile.sha256_deprecated
+//        let sha256_2 = logFile.calculateHash(SHA256()).md5
+//        Log4swift[Self.self].info("       SHA256: '\(sha256_2)'")
+//
+//        XCTAssert(sha256_1 == sha256_2)
+//
+//        // let logFile2 = URL(fileURLWithPath: "/Applications/Firefox.app/Contents/MacOS/XUL")
+//        await logFile.benchMark(prefix: " Insecure.MD5", count: 100, { _ = logFile.calculateHash(Insecure.MD5()).md5 })
+//        await logFile.benchMark(prefix: "Insecure.SHA1", count: 100, { _ = logFile.calculateHash(Insecure.SHA1()).md5 })
+//        await logFile.benchMark(prefix: "       SHA256", count: 100, { _ = logFile.calculateHash(SHA256()).md5 })
 
         Log4swift[Self.self].dash("benchMark")
 

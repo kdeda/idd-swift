@@ -23,18 +23,18 @@ struct FileHandleTests {
         Log4swift.configure(fileLogConfig: nil)
 
         // in mseconds
-        let taskLength: UInt64 = 2_000
+        let taskLength: Int = 2_000
         // Will emulate some work
         func workerTask(id: Int, finishFirst: Bool) -> Task<Void, Never> {
             Task {
                 var count = 0
-                let iterations: UInt64 = 10 * UInt64.random(in: (5 ... 7))
+                let iterations: Int = 10 * Int.random(in: (5 ... 7))
                 let sleep = finishFirst ? ((taskLength - 500) / iterations) : (taskLength / iterations)
 
                 Log4swift[Self.self].info("task.\(id) started")
                 while !Task.isCancelled {
                     // sleep for 250 milliseconds
-                    try? await Task.sleep(nanoseconds: NSEC_PER_MSEC * sleep)
+                    try? await Task.sleep(nanoseconds: .nanoseconds(milliseconds: sleep))
                     count += 1
                     if count % 10 == 0 {
                         Log4swift[Self.self].info("task.\(id) processed \(count) iterations")
@@ -88,15 +88,15 @@ struct FileHandleTests {
         let task4: Task<Void, Never> = {
             Task {
                 let finishFirst = finishIndex == 3
-                let iterations: UInt64 = 2
+                let iterations: Int = 2
                 let sleep = finishFirst ? ((taskLength - 500) / iterations) : (taskLength / iterations)
 
-                try? await Task.sleep(nanoseconds: NSEC_PER_MSEC * sleep)
+                try? await Task.sleep(nanoseconds: .nanoseconds(milliseconds: sleep))
                 var message = "fooBar"
                 Log4swift[Self.self].info("send: \(message)")
                 pipe.fileHandleForWriting.write("\(message)\n".data(using: .utf8) ?? Data())
 
-                try? await Task.sleep(nanoseconds: NSEC_PER_MSEC * sleep)
+                try? await Task.sleep(nanoseconds: .nanoseconds(milliseconds: sleep))
                 message = "exit"
                 pipe.fileHandleForWriting.write("\(message)\n".data(using: .utf8) ?? Data())
             }

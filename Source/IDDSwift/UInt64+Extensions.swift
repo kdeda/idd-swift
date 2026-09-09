@@ -12,11 +12,14 @@ import Foundation
  Helpers to be used with Task.sleep(nanoseconds:)
  Which we should get rid off when we get rid of macOS 13 and older
  Also the beloved `NSEC_PER_MSEC` constant will not compile in windows
+ 
+ So pls use the wrappers
  */
 public extension UInt64 {
     fileprivate static let NSEC_PER_MSEC: UInt64 = 1_000_000
 
     /**
+     Wrapper
      Return nanoseconds from milliseconds
      */
     static func nanoseconds(milliseconds: Int) -> Self {
@@ -24,6 +27,7 @@ public extension UInt64 {
     }
 
     /**
+     Wrapper
      Return nanoseconds from seconds
      */
     static func nanoseconds(seconds: Int) -> Self {

@@ -10,6 +10,14 @@ import Foundation
 import Log4swift
 import Crypto
 
+#if os(Windows)
+// Windows has no Objective-C runtime and Foundation does not provide this shim there.
+@inline(__always)
+func autoreleasepool<Result>(invoking body: () throws -> Result) rethrows -> Result {
+    try body()
+}
+#endif
+
 public extension Data {
     func digestWithHasher<Hasher: HashFunction>(_ hasher: Hasher) -> Data {
         var hasher_ = hasher
@@ -68,15 +76,6 @@ public extension Data {
 
 fileprivate extension FileHandle {
     static let bufferLength = 512 * 1024 // 500kb at once
-
-    func readData(_ bufferLength: Int) -> Data? {
-        guard !Task.isCancelled // preemptive cancellation
-        else { return .none }
-
-        guard let nextChunk = try? self.read(upToCount: bufferLength)
-        else { return .none }
-        return nextChunk
-    }
 
     /**
      Maximum chunk is FileHandle.bufferLength
@@ -150,7 +149,7 @@ public extension URL {
         while !endOfFile {
             autoreleasepool {
                 // release any temporary as soon as possible
-                if let nextChunk = handle.readData(FileHandle.bufferLength),
+                if let nextChunk = try? handle.read(upToCount: FileHandle.bufferLength),
                    !nextChunk.isEmpty
                 {
                     hasher_.update(data: nextChunk)
